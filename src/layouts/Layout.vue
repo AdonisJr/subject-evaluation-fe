@@ -1,0 +1,23 @@
+<template>
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (fixed height, non-scrollable) -->
+    <AdminSidebar />
+
+    <!-- Main content (scrollable only here) -->
+    <main class="flex-1 flex flex-col bg-gray-100 overflow-hidden">
+      <!-- Content area (scrollable) -->
+      <div class="flex-1 overflow-y-auto p-6">
+        <router-view />
+      </div>
+
+      <!-- Footer stays at bottom -->
+      <Footer />
+    </main>
+  </div>
+</template>
+
+<script setup>
+import AdminSidebar from '@/components/AdminSidebar.vue' // reuse admin sidebar
+import Footer from '@/components/Footer.vue';
+
+</script>
