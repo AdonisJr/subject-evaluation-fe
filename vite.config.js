@@ -19,4 +19,17 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      // 🔥 This fixes your CORS issue
+      '/storage': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
 })

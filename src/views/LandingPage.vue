@@ -5,11 +5,21 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const showLogin = ref(false)
+const showRegister = ref(false)
 const auth = useAuthStore()
 const router = useRouter();
 
 const closeModal = () => {
   showLogin.value = false
+}
+
+const closeRegistration = () => {
+  showRegister.value = false
+}
+
+const showRegistration = () => {
+  showRegister.value = true;
+  showLogin.value = false;
 }
 
 onMounted(() => {
@@ -38,7 +48,7 @@ onMounted(() => {
         students, ensuring a smooth and efficient transition.
       </p>
       <button @click="showLogin = true"
-        class="px-6 py-3 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition">
+        class="px-6 py-3 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition cursor-pointer">
         Get Started
       </button>
     </main>
@@ -46,9 +56,11 @@ onMounted(() => {
     <Footer />
 
     <!-- Login Modal -->
-    <LoginModal @update:show="closeModal" v-if="showLogin" />
+    <LoginModal @update:show="closeModal" v-if="showLogin" @update:show-registration="showRegistration" />
+    <RegistrationModal @update:show="closeRegistration" v-if="showRegister" @update:show-registration="showRegistration" />
   </div>
 </template>
 <script>
 import Footer from '@/components/Footer.vue';
+import RegistrationModal from '@/components/RegistrationModal.vue';
 </script>

@@ -1,7 +1,9 @@
 <template>
   <div class="flex h-screen overflow-hidden">
     <!-- Sidebar (fixed height, non-scrollable) -->
-    <AdminSidebar />
+
+    <AdminSidebar v-if="auth.user.role === 'admin'" />
+    <StudentSidebar v-else />
 
     <!-- Main content (scrollable only here) -->
     <main class="flex-1 flex flex-col bg-gray-100 overflow-hidden">
@@ -19,5 +21,13 @@
 <script setup>
 import AdminSidebar from '@/components/AdminSidebar.vue' // reuse admin sidebar
 import Footer from '@/components/Footer.vue';
+import StudentSidebar from '@/components/StudentSidebar.vue';
+import { useAuthStore } from '@/stores/auth';
+
+const auth = useAuthStore();
+if (!auth.user) {
+  // If not logged in, redirect to landing page
+  window.location.href = '/';
+}
 
 </script>
