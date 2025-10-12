@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
 
-const emits = defineEmits(['update:show']);
+const emits = defineEmits(['update:show', 'update:show-registration']);
 
 const router = useRouter();
 const toast = useToast();
@@ -70,18 +70,18 @@ const handleLogin = async () => {
                     </div>
 
                     <div class="flex justify-between items-center">
-                        <a href="#" class="text-sm text-green-600 hover:underline">
-                            Forgot Password?
+                        <a href="#" class="text-sm text-green-600 hover:underline"  @click="emits('update:show-registration', false)">
+                            No account? Register
                         </a>
                     </div>
 
                     <button type="submit"
-                        class="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                        class="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition cursor-pointer">
                         {{ isLoading ? 'Logging in...' : 'Login' }}
                     </button>
 
-                    <button type="button" @click="show = false"
-                        class="w-full py-2 mt-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                    <button type="button" @click="emits('update:show', false)"
+                        class="w-full py-2 mt-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer">
                         Cancel
                     </button>
                 </form>

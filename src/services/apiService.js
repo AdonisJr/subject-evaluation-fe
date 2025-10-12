@@ -48,6 +48,17 @@ export const fetchUsers = async () => {
     }
 };
 
+export const fetchMyInfo = async () => {
+    try {
+        const response = await api.get('/api/me');
+        console.log('Fetched my info:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching my info:', error);
+        throw error;
+    }
+};
+
 // TOR Management APIs
 
 
@@ -65,6 +76,17 @@ export const fetchAllTors = async () => {
     }
 }
 
+export const fetchMyTors = async () => {
+    try {
+        const response = await api.get('/api/fetchMyTors')
+        console.log('Fetched my TORs:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching my TORs:', error)
+        throw error
+    }
+}
+
 //
 // 📤 Upload a new TOR
 //
@@ -73,9 +95,9 @@ export const uploadTor = async (file) => {
     try {
         const formData = new FormData()
         formData.append('file', file)
-
         const response = await api.post('/api/tor', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 120000 // ⏳ 120 seconds for OCR requests
         })
 
         console.log('Uploaded TOR:', response.data)
@@ -337,6 +359,45 @@ export const fetchSubjectPrerequisites = async (id) => {
         return response.data
     } catch (error) {
         console.error(`Error fetching prerequisites for subject ID ${id}:`, error)
+        throw error
+    }
+}
+
+
+
+/**
+ * POST GRADES
+ */
+export const saveGrades = async (id, grades, user_id) => {
+    try {
+        const response = await api.post(`/api/grades`, {
+            tor_id: id,
+            grades: grades
+        }, {
+            timeout: 120000 // ⏳ 120 seconds for OCR requests
+        });
+        console.log(`Processed grades ${id}:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error to process grades ${id}:`, error)
+        throw error
+    }
+}
+
+
+
+/**
+ * Fetch prerequisites of a subject (recursive chain)
+ */
+export const Tesseract = async (id, curriculum_id) => {
+    try {
+        const response = await api.post(`/api/process-tor/${id}/${curriculum_id}`, {}, {
+            timeout: 0 // ⏳ 120 seconds for OCR requests
+        });
+        console.log(`Processed tor ${id}:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error to process tor ${id}:`, error)
         throw error
     }
 }

@@ -9,7 +9,7 @@
     <!-- Navigation Links -->
     <nav class="flex-1 px-4 py-6 space-y-2">
       <RouterLink
-        to="/admin/dashboard"
+        to="/student/dashboard"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
         active-class="bg-slate-700"
       >
@@ -17,15 +17,7 @@
       </RouterLink>
 
       <RouterLink
-        to="/admin/students"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
-        active-class="bg-slate-700"
-      >
-        <span>⬆️</span> Students
-      </RouterLink>
-
-      <RouterLink
-        to="/admin/upload-tor"
+        to="/student/upload-tor"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
         active-class="bg-slate-700"
       >
@@ -33,15 +25,7 @@
       </RouterLink>
 
       <RouterLink
-        to="/admin/transcript-extract"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
-        active-class="bg-slate-700"
-      >
-        <span>📄</span> Transcript Extract
-      </RouterLink>
-
-      <RouterLink
-        to="/admin/profile"
+        to="/student/profile"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
         active-class="bg-slate-700"
       >
@@ -78,7 +62,6 @@ import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 const route = useRoute();
 
-console.log(route);
 
 
 </script>
