@@ -4,10 +4,8 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold text-gray-800">Profile Page</h1>
       <div class="flex gap-3">
-        <button
-          @click="openEditModal"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
-        >
+        <button @click="openEditModal"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">
           + EDIT
         </button>
       </div>
@@ -20,28 +18,28 @@
         <div class="flex flex-col items-center">
           <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4">
             <span v-if="auth.user.role === 'admin'" class="text-5xl">
-              {{ student.gender?.toLowerCase() === 'female' ? '👩' : '👨' }}
+              {{ student?.gender?.toLowerCase() === 'female' ? '👩' : '👨' }}
             </span>
             <span v-else-if="auth.user.role === 'user'" class="text-5xl">
-              {{ student.gender?.toLowerCase() === 'female' ? '👩‍🎓' : '👨‍🎓' }}
+              {{ student?.gender?.toLowerCase() === 'female' ? '👩‍🎓' : '👨‍🎓' }}
             </span>
           </div>
           <h2 class="text-lg font-semibold text-gray-800">
-            {{ student.first_name }} {{ student.last_name }}
+            {{ student?.first_name }} {{ student?.last_name }}
           </h2>
-          <p class="text-gray-500 text-sm mb-1">#{{ student.student_id || 'N/A' }}</p>
+          <p class="text-gray-500 text-sm mb-1">#{{ student?.student_id || 'N/A' }}</p>
 
           <div class="flex justify-around w-full text-center my-6">
             <div>
-              <p class="text-lg font-semibold text-gray-800">{{ student.gender || '-' }}</p>
+              <p class="text-lg font-semibold text-gray-800">{{ student?.gender || '-' }}</p>
               <p class="text-xs text-gray-400">GENDER</p>
             </div>
             <div>
-              <p class="text-lg font-semibold text-gray-800">{{ student.course.code || '-' }}</p>
+              <p class="text-lg font-semibold text-gray-800">{{ student?.course?.code || '-' }}</p>
               <p class="text-xs text-gray-400">COURSE</p>
             </div>
             <div>
-              <p class="text-lg font-semibold text-gray-800">28</p>
+              <p class="text-lg font-semibold text-gray-800">{{ student.dob ? calculateAge(student.dob) : '-' }}</p>
               <p class="text-xs text-gray-400">AGE</p>
             </div>
           </div>
@@ -56,16 +54,16 @@
             <h3 class="font-semibold text-gray-800 uppercase text-sm">Profile</h3>
           </div>
           <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-3 text-sm">
-            <div><strong>Admission Date:</strong> {{ student.created_at || '—' }}</div>
-            <div><strong>Date of Birth:</strong> {{ student.dob || '—' }}</div>
-            <div><strong>Category:</strong> {{ student.category || '—' }}</div>
-            <div><strong>Mobile Number:</strong> {{ student.mobile || '—' }}</div>
-            <div><strong>Email:</strong> {{ student.email || '—' }}</div>
-            <div><strong>Religion:</strong> {{ student.religion || '—' }}</div>
-            <div><strong>Current Address:</strong> {{ student.current_address || '—' }}</div>
-            <div><strong>Permanent Address:</strong> {{ student.permanent_address || '—' }}</div>
-            <div><strong>Mother:</strong> {{ student.mother || '—' }}</div>
-            <div><strong>Father:</strong> {{ student.father || '—' }}</div>
+            <div><strong>Admission Date:</strong> {{ formatDate(student?.created_at) || '—' }}</div>
+            <div><strong>Date of Birth:</strong> {{ student?.dob || '—' }}</div>
+            <div><strong>Category:</strong> {{ student?.category || '—' }}</div>
+            <div><strong>Mobile Number:</strong> {{ student?.mobile || '—' }}</div>
+            <div><strong>Email:</strong> {{ student?.email || '—' }}</div>
+            <div><strong>Religion:</strong> {{ student?.religion || '—' }}</div>
+            <div><strong>Current Address:</strong> {{ student?.current_address || '—' }}</div>
+            <div><strong>Permanent Address:</strong> {{ student?.permanent_address || '—' }}</div>
+            <div><strong>Mother:</strong> {{ student?.mother || '—' }}</div>
+            <div><strong>Father:</strong> {{ student?.father || '—' }}</div>
           </div>
         </div>
 
@@ -75,22 +73,19 @@
             <h3 class="font-semibold text-gray-800 uppercase text-sm">Miscellaneous Details</h3>
           </div>
           <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-3 text-sm">
-            <div><strong>Blood Group:</strong> {{ student.blood_type || '—' }}</div>
-            <div><strong>Eye Color:</strong> {{ student.eye_color || '—' }}</div>
-            <div><strong>Height:</strong> {{ student.height || '—' }}</div>
-            <div><strong>Weight:</strong> {{ student.weight || '—' }}</div>
-            <div><strong>As on Date:</strong> {{ student.updated_at || '—' }}</div>
+            <div><strong>Blood Group:</strong> {{ student?.blood_type || '—' }}</div>
+            <div><strong>Eye Color:</strong> {{ student?.eye_color || '—' }}</div>
+            <div><strong>Height:</strong> {{ student?.height || '—' }}</div>
+            <div><strong>Weight:</strong> {{ student?.weight || '—' }}</div>
+            <div><strong>As on Date:</strong> {{ formatDate(student?.updated_at) || '—' }}</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ✨ Edit Modal -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
-      @click.self="closeModal"
-    >
+    <div v-if="showModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+      @click.self="closeModal">
       <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Edit Profile</h2>
 
@@ -110,7 +105,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="label">Email</label>
-              <input v-model="editForm.email" class="input" type="email" />
+              <input v-model="editForm.email" disabled class="input" type="email" />
             </div>
             <div>
               <label class="label">Gender</label>
@@ -130,7 +125,11 @@
             </div>
             <div>
               <label class="label">Category</label>
-              <input v-model="editForm.category" class="input" type="text" />
+              <select v-model="editForm.category" class="input">
+                <option value="">Select</option>
+                <option>Transferee</option>
+                <option>Shiftee</option>
+              </select>
             </div>
           </div>
 
@@ -190,17 +189,11 @@
 
           <!-- Buttons -->
           <div class="flex justify-end gap-3 mt-6">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"
-            >
+            <button type="button" @click="closeModal"
+              class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm">
               Cancel
             </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-            >
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
               Save Changes
             </button>
           </div>
@@ -211,35 +204,16 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
+import { fetchMyInfo, saveUpdateUserOtherInfo } from '@/services/apiService'
+import { formatDate, calculateAge } from '@/utils/formatters'
 
 const toast = useToast()
 const auth = useAuthStore()
 
-const student = ref({
-  first_name: 'Mayank',
-  last_name: 'Singh',
-  email: 'hello@campus365.io',
-  updated_at: '13-05-2020',
-  student_id: 123,
-  created_at: '13-05-2020',
-  gender: 'Male',
-  course: { name: 'B.Tech', code: 'BSIT' },
-  category: 'New',
-  mobile: '07982639820',
-  father: '',
-  mother: '123',
-  religion: '',
-  current_address: '',
-  permanent_address: '',
-  blood_type: '',
-  eye_color: '',
-  height: '123',
-  weight: '123',
-  dob: '',
-})
+const student = ref({ ...auth.user, ...auth.user.other_info })
 
 const showModal = ref(false)
 const editForm = reactive({})
@@ -251,16 +225,69 @@ const openEditModal = () => {
 }
 
 // Save changes
-const saveChanges = () => {
-  Object.assign(student.value, editForm)
-  showModal.value = false
-  toast.success('Profile updated successfully!')
-}
+const saveChanges = async () => {
+  // Frontend validation
+  const requiredFields = ['first_name', 'last_name', 'gender', 'category', 'email']
+  const missing = requiredFields.filter(field => !editForm[field] || editForm[field].trim() === '')
 
+  if (missing.length > 0) {
+    toast.error(`Please fill out: ${missing.join(', ')}`)
+    return
+  }
+
+  // 🧮 Validate DOB (must be at least 16 years old)
+  if (editForm.dob) {
+    const dob = new Date(editForm.dob)
+    const today = new Date()
+
+    let age = today.getFullYear() - dob.getFullYear()
+    const monthDiff = today.getMonth() - dob.getMonth()
+    const dayDiff = today.getDate() - dob.getDate()
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--
+    }
+
+    if (age < 16) {
+      toast.error('Student must be at least 16 years old.')
+      return
+    }
+  }
+
+
+  try {
+    const response = await saveUpdateUserOtherInfo(editForm)
+    showModal.value = false
+    await getOtherInfo();
+    toast.success('Profile updated successfully!')
+  } catch (error) {
+    console.error(error)
+    if (error.response?.status === 422) {
+      // Laravel validation error
+      const messages = Object.values(error.response.data.errors).flat().join('\n')
+      toast.error(messages)
+    } else {
+      toast.error(error.response?.data?.message || 'Error saving profile')
+    }
+  }
+}
 // Close modal
 const closeModal = () => {
   showModal.value = false
-}
+};
+
+const getOtherInfo = async () => {
+  try {
+    const res = await fetchMyInfo();
+    console.log(res)
+    localStorage.setItem('user', JSON.stringify(res.user));
+    toast.success('Profile information loaded successfully.');
+    student.value = { ...res.user, ...res.user.other_info }
+  } catch (error) {
+    console.error('Failed to fetch user info:', error)
+  }
+};
+
 </script>
 
 <style scoped>
@@ -268,6 +295,7 @@ strong {
   font-weight: 600;
   color: #374151;
 }
+
 .label {
   display: block;
   font-size: 0.875rem;
@@ -275,6 +303,7 @@ strong {
   color: #4b5563;
   margin-bottom: 0.25rem;
 }
+
 .input {
   width: 100%;
   padding: 0.5rem;
