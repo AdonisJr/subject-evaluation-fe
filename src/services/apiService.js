@@ -59,6 +59,29 @@ export const fetchMyInfo = async () => {
     }
 };
 
+
+export const fetchUserOtherInfo = async () => {
+    try {
+        const response = await api.get('/api/users/other-info');
+        console.log('Fetched users:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
+
+export const saveUpdateUserOtherInfo = async (user) => {
+    try {
+        const response = await api.post('/api/users/other-info', user);
+        console.log('Fetched users other info:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error saving users other info:', error);
+        throw error;
+    }
+};
+
 // TOR Management APIs
 
 
@@ -90,14 +113,14 @@ export const fetchMyTors = async () => {
 //
 // 📤 Upload a new TOR
 //
-export const uploadTor = async (file) => {
+export const uploadTor = async (file, curriculum_id) => {
 
     try {
         const formData = new FormData()
         formData.append('file', file)
-        const response = await api.post('/api/tor', formData, {
+        const response = await api.post(`/api/tor/upload/${curriculum_id}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
-            timeout: 120000 // ⏳ 120 seconds for OCR requests
+            timeout: 1200000 // ⏳ 120 seconds for OCR requests
         })
 
         console.log('Uploaded TOR:', response.data)
@@ -383,7 +406,6 @@ export const saveGrades = async (id, grades, user_id) => {
         throw error
     }
 }
-
 
 
 /**

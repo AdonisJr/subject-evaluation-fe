@@ -30,7 +30,7 @@ const router = createRouter({
       path: '/student',
       component: Layout,
       children: [
-        { path: 'upload-tor', name: 'StudentUploadTor', component: () => import('@/views/admin/UploadTor.vue') },
+        { path: 'upload-tor', name: 'StudentUploadTor', component: () => import('@/views/student/StudentUploadTor.vue') },
         { path: 'dashboard', name: 'StudentDashboard', component: () => import('@/views/student/StudentDashboard.vue') },
         { path: 'profile', name: 'StudentProfile', component: () => import('@/views/Profile.vue') },
       ]
@@ -44,26 +44,37 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const toast = useToast();
-  const user = JSON.parse(localStorage.getItem('user'))
+  const user = JSON.parse(localStorage.getItem('user'));
 
-  // If route starts with /student and user is logged in
-  if (to.path.startsWith('/student')) {
-    if (!user) {
-      toast.error('Please log in first.')
-      return next('/') // redirect to landing/login
-    }
+  // If user is not logged in
+  if (!user?.id) {
+    return next(); // let them access public pages (landing, login)
+  }
 
-    // Check if other_info is missing or empty
-    if (user.role === 'user' && !user.other_info || user.role === 'user' && Object.keys(user.other_info).length === 0) {
-      if (to.path !== '/student/profile') {
-        toast.error('Please complete your profile information first.')
-        return next('/student/profile')
-      }
+  // User is logged in
+  const isAdmin = user.role === 'admin';
+  const isStudent = user.role === 'user';
+
+  // Check if other_info is missing or empty
+  const missingInfo = !user.other_info || Object.keys(user.other_info).length === 0;
+
+  // If profile info is missing, force redirect to profile
+  if (missingInfo) {
+    if (isStudent && to.path !== '/student/profile') {
+      toast.warning('Please complete your profile information.');
+      return next('/student/profile');
     }
   }
 
-  next()
-})
+  // If user goes to landing page while logged in, redirect to dashboard
+  if (to.path === '/' || to.path === '/login') {
+    if (isAdmin) return next('/admin/dashboard');
+    if (isStudent) return next('/student/dashboard');
+  }
+
+  next(); // allow other routes
+});
+
 
 
 export default router
