@@ -35,3 +35,44 @@ export function calculateAge(dob) {
 
   return age
 }
+
+/**
+ * Format time difference to "1mo ago", "1h 27m ago", "36s ago", etc.
+ * @param {string|Date|null} date
+ * @returns {string}
+ */
+export function timeAgo(date) {
+  if (!date) return '—'
+  const now = new Date()
+  const past = new Date(date)
+  const seconds = Math.floor((now - past) / 1000)
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+  }
+
+  if (seconds < 60) {
+    return `${seconds}s ago`
+  } else if (seconds < 3600) {
+    const mins = Math.floor(seconds / 60)
+    return `${mins}m ago`
+  } else if (seconds < 86400) {
+    const hrs = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    return mins > 0 ? `${hrs}h ${mins}m ago` : `${hrs}h ago`
+  } else if (seconds < 2592000) {
+    const days = Math.floor(seconds / 86400)
+    return `${days}d ago`
+  } else if (seconds < 31536000) {
+    const months = Math.floor(seconds / 2592000)
+    return `${months}mo ago`
+  } else {
+    const years = Math.floor(seconds / 31536000)
+    return `${years}y ago`
+  }
+}
