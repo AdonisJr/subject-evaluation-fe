@@ -6,35 +6,25 @@
         <h1 class="text-2xl font-semibold text-gray-800">Student Management</h1>
         <p class="text-sm text-gray-500">Manage and track all students.</p>
       </div>
-      <button
-        @click="openModal()"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-      >
+      <button @click="openModal()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
         + Add Student
       </button>
     </div>
 
     <!-- Search & Filters -->
     <div class="flex flex-wrap items-center gap-3 mb-6">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search student name..."
-        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <select
-        v-model="filterType"
-        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
+      <input v-model="search" type="text" placeholder="Search student name..."
+        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <select v-model="filterType"
+        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="">All Types</option>
         <option value="New">New</option>
         <option value="Old">Old</option>
         <option value="Transferee">Transferee</option>
       </select>
-      <select
-        v-model="filterYear"
-        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
+      <select v-model="filterYear"
+        class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="">All Years</option>
         <option v-for="year in yearLevels" :key="year" :value="year">
           {{ year }}
@@ -64,11 +54,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="student in paginatedStudents"
-              :key="student.id"
-              class="border-b border-slate-200 hover:bg-gray-50 transition"
-            >
+            <tr v-for="student in paginatedStudents" :key="student.id"
+              class="border-b border-slate-200 hover:bg-gray-50 transition">
               <td class="px-4 py-3">{{ student.student_id || '__' }}</td>
               <td class="px-4 py-3">{{ student.first_name || '__' }}</td>
               <td class="px-4 py-3">{{ student.last_name || '__' }}</td>
@@ -94,10 +81,7 @@
         </table>
 
         <!-- Pagination Controls -->
-        <div
-          v-if="totalPages > 1"
-          class="flex justify-between items-center mt-4 px-2 text-sm text-gray-700"
-        >
+        <div v-if="totalPages > 1" class="flex justify-between items-center mt-4 px-2 text-sm text-gray-700">
           <span>
             Showing
             <b>{{ startItem }}</b> - <b>{{ endItem }}</b> of
@@ -105,31 +89,20 @@
           </span>
 
           <div class="flex space-x-2">
-            <button
-              @click="prevPage"
-              :disabled="currentPage === 1"
-              class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
-            >
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50">
               Prev
             </button>
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              @click="goToPage(page)"
-              :class="[ 
-                'px-3 py-1 rounded-lg border',
-                currentPage === page
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white hover:bg-gray-100 border-gray-300'
-              ]"
-            >
+            <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="[
+              'px-3 py-1 rounded-lg border',
+              currentPage === page
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white hover:bg-gray-100 border-gray-300'
+            ]">
               {{ page }}
             </button>
-            <button
-              @click="nextPage"
-              :disabled="currentPage === totalPages"
-              class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
-            >
+            <button @click="nextPage" :disabled="currentPage === totalPages"
+              class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50">
               Next
             </button>
           </div>
@@ -138,69 +111,52 @@
     </div>
 
     <!-- ✨ Modal Overlay -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
-    >
-      <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 relative animate-fadeIn">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">
-          {{ editMode ? 'Edit Student' : 'Add Student' }}
-        </h2>
+    <ModalOverlay v-if="showModal">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        {{ editMode ? 'Edit Student' : 'Add Student' }}
+      </h2>
 
-        <form @submit.prevent="saveStudent" class="space-y-4">
-          <!-- Full Name -->
+      <form @submit.prevent="saveStudent" class="space-y-4">
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Full Name</label>
+          <input v-model="form.name" type="text" class="input" placeholder="Enter full name" required />
+        </div>
+
+        <!-- Type & Year -->
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-gray-600 mb-1">Full Name</label>
-            <input
-              v-model="form.name"
-              type="text"
-              class="input"
-              placeholder="Enter full name"
-              required
-            />
+            <label class="block text-xs text-gray-600 mb-1">Type</label>
+            <select v-model="form.type" class="input" required>
+              <option value="">Select Type</option>
+              <option value="New">New</option>
+              <option value="Old">Old</option>
+              <option value="Transferee">Transferee</option>
+            </select>
           </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Year Level</label>
+            <select v-model="form.year" class="input" required>
+              <option value="">Select Year</option>
+              <option v-for="year in yearLevels" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
+          </div>
+        </div>
 
-          <!-- Type & Year -->
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-gray-600 mb-1">Type</label>
-              <select v-model="form.type" class="input" required>
-                <option value="">Select Type</option>
-                <option value="New">New</option>
-                <option value="Old">Old</option>
-                <option value="Transferee">Transferee</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs text-gray-600 mb-1">Year Level</label>
-              <select v-model="form.year" class="input" required>
-                <option value="">Select Year</option>
-                <option v-for="year in yearLevels" :key="year" :value="year">
-                  {{ year }}
-                </option>
-              </select>
-            </div>
-          </div>
+        <!-- Buttons -->
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+            {{ editMode ? 'Update' : 'Save' }}
+          </button>
+        </div>
+      </form>
 
-          <!-- Buttons -->
-          <div class="flex justify-end gap-3 mt-6">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-            >
-              {{ editMode ? 'Update' : 'Save' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    </ModalOverlay>
   </div>
 </template>
 
@@ -208,6 +164,7 @@
 import { ref, computed, onMounted } from "vue";
 import { fetchUsers } from "@/services/apiService";
 import TableLoader from "@/components/TableLoader.vue";
+import ModalOverlay from "@/components/ModalOverlay.vue";
 
 const isLoadingUsers = ref(false);
 const students = ref([]);
@@ -321,16 +278,19 @@ onMounted(() => {
   font-size: 0.875rem;
   color: #374151;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out;
 }

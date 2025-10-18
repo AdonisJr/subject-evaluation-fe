@@ -18,10 +18,12 @@ const router = createRouter({
       component: Layout,
       children: [
         { path: 'dashboard', name: 'AdminDashboard', component: () => import('@/views/admin/Dashboard.vue') },
-        { path: 'upload-tor', name: 'AdminUploadTor', component: () => import('@/views/admin/UploadTor.vue') },
+        { path: 'uploaded-tor', name: 'AdminUploadTor', component: () => import('@/views/admin/UploadTor.vue') },
+        { path: 'subjects', name: 'AdminSubjects', component: () => import('@/views/admin/Subjects.vue') },
         { path: 'transcript-extract', name: 'TranscriptExtract', component: () => import('@/views/admin/TranscriptExtract.vue') },
         { path: 'students', name: 'students', component: () => import('@/views/admin/Students.vue') },
         { path: 'profile', name: 'AdminProfile', component: () => import('@/views/Profile.vue') },
+        { path: 'curriculum', name: 'AdminCurriculum', component: () => import('@/views/admin/Curriculum.vue') },
       ]
     },
 

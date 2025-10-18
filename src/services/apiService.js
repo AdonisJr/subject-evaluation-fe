@@ -173,6 +173,39 @@ export const deleteTor = async (id) => {
 }
 
 
+// advising related
+// 💾 Save advising
+// 🧾 Advising related
+export const saveAdvising = async (payload) => {
+    try {
+        const response = await api.post('/api/advising', {
+            tor_id: payload.tor_id,
+            advising: payload.advising,
+            ocr_records: payload.ocr_records
+        })
+        console.log('✅ Saved Advising:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('❌ Error saving advising:', error.response?.data || error)
+        throw error
+    }
+}
+
+
+// 📖 Get advising by TOR ID
+export const fetchAdvising = async (torId) => {
+    try {
+        const response = await api.get(`/api/advising/${torId}`)
+        console.log('Fetched Advising:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching advising:', error)
+        throw error
+    }
+}
+
+
+
 /**
  * Fetch all courses
  */
@@ -423,6 +456,56 @@ export const Tesseract = async (id, curriculum_id) => {
         throw error
     }
 }
+
+
+// 📬 Get all notifications
+export const fetchAllNotifications = async () => {
+    try {
+        const response = await api.get('/api/notifications')
+        console.log('All Notifications:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching all notifications:', error)
+        throw error
+    }
+}
+
+// 🔔 Get only unread notifications
+export const fetchUnreadNotifications = async () => {
+    try {
+        const response = await api.get('/api/notifications/unread')
+        console.log('Unread Notifications:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching unread notifications:', error)
+        throw error
+    }
+}
+
+// ✅ Mark a single notification as read
+export const markNotificationAsRead = async (id) => {
+    try {
+        const response = await api.post(`/api/notifications/${id}/read`)
+        console.log(`Notification ${id} marked as read:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error marking notification ${id} as read:`, error)
+        throw error
+    }
+}
+
+// 🧹 Mark all notifications as read
+export const markAllNotificationsAsRead = async () => {
+    try {
+        const response = await api.post('/api/notifications/read-all')
+        console.log('All notifications marked as read:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error)
+        throw error
+    }
+}
+
 
 
 export default api

@@ -4,20 +4,40 @@
             Upload Transcript of Records
         </h2>
 
+        <!-- Curriculum Selector -->
+        <div class="relative mb-4 w-full sm:w-1/3">
+            <div class="border border-gray-300 rounded-lg px-3 py-2 bg-white cursor-pointer"
+                @click="toggleCurriculumDropdown">
+                {{ selectedCurriculum?.course?.name ?? 'Select Curriculum' }}
+            </div>
+
+            <!-- Dropdown -->
+            <div v-if="showCurriculumDropdown"
+                class="absolute mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <input v-model="curriculumSearch" type="text" placeholder="Search curriculum..."
+                    class="w-full px-3 py-2 border-b border-gray-200 text-sm focus:outline-none" />
+
+                <ul class="max-h-56 overflow-y-auto">
+                    <li v-for="curriculum in filteredCurriculums" :key="curriculum.id"
+                        @click="selectCurriculum(curriculum)" class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm">
+                        {{ curriculum.course?.name }} ({{ curriculum.year_start }} - {{ curriculum.year_end }})
+                    </li>
+                    <li v-if="!filteredCurriculums.length" class="px-3 py-2 text-gray-400 text-sm">No results found.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- File Upload -->
         <div class="bg-white p-6 rounded-lg hover:shadow-md duration-200 mb-6">
             <FileUpload @file-selected="handleFileUpload" />
         </div>
 
-
-        <!-- results of upload -->
-
+        <!-- Results / Loader -->
         <div class="bg-white rounded-lg shadow px-6 pb-6">
-            <!-- Loader -->
             <div v-if="isProcessing" class="mt-4">
-                <!-- <TableLoader :rows="5" /> -->
                 <OcrLoader :show="isProcessing" />
             </div>
-
 
             <div class="flex flex-col h-[300px] overflow-y-auto" v-else>
                 <div v-if="extractedSubjects.length">
@@ -25,8 +45,10 @@
                         <thead class="bg-white sticky top-0">
                             <tr>
                                 <th class="px-4 py-2 text-left">Code</th>
-                                <th class="px-4 py-2 text-left">Subject Name</th>
+                                <th class="px-4 py-2 text-left">Subject Title</th>
                                 <th class="px-4 py-2 text-left">Units</th>
+                                <th class="px-4 py-2 text-left">Grade</th>
+                                <th class="px-4 py-2 text-left">Percent Grade</th>
                                 <th class="px-4 py-2 text-left">Credited</th>
                                 <th class="px-4 py-2 text-left">Credited To</th>
                             </tr>
@@ -38,27 +60,24 @@
                                 <td class="px-4 py-2">{{ subject.title }}</td>
                                 <td class="px-4 py-2">{{ subject.credits }}</td>
                                 <td class="px-4 py-2">{{ subject.grade }}</td>
+                                <td class="px-4 py-2">{{ subject.percent_grade }}</td>
                                 <td class="px-4 py-2">
-                                    <!-- {{ subject.is_credited }} -->
                                     <input type="checkbox" v-model="subject.is_credited" />
                                 </td>
-                                <!-- <td class="px-4 py-2">{{ subject.credited_code }}</td> -->
                                 <td class="px-4 py-2">
-                                    <!-- <input type="checkbox" v-model="subject.is_credited" class="mr-2" /> -->
                                     <p v-if="!subject.is_credited && !subject.credited_id"></p>
                                     <select v-model="subject.credited_id" v-else
                                         class="border border-gray-300 rounded px-2 py-1 text-xs w-full"
                                         :disabled="!subject.is_credited">
                                         <option value="" disabled>Select subject</option>
-                                        <option v-for="s in subjects" :key="s.id" :value="s.id">
-                                            {{ s.code }}
-                                        </option>
+                                        <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.code }}</option>
                                     </select>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
                 <!-- Empty State -->
                 <div v-else class="flex flex-col items-center justify-center h-full text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24"
@@ -69,7 +88,6 @@
                     <p class="text-center">No subjects found.</p>
                 </div>
             </div>
-            <!-- Subjects Table -->
 
             <!-- Advising Section -->
             <div v-if="advising.first_sem?.length || advising.second_sem?.length"
@@ -93,6 +111,8 @@
                                 <th class="px-4 py-2 text-left">Code</th>
                                 <th class="px-4 py-2 text-left">Subject Name</th>
                                 <th class="px-4 py-2 text-left">Units</th>
+                                <th class="px-4 py-2 text-left">Semester</th>
+                                <th class="px-4 py-2 text-left">Year Level</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -101,6 +121,8 @@
                                 <td class="px-4 py-2">{{ subject.code }}</td>
                                 <td class="px-4 py-2">{{ subject.title }}</td>
                                 <td class="px-4 py-2">{{ subject.units }}</td>
+                                <td class="px-4 py-2">{{ subject.semester }}</td>
+                                <td class="px-4 py-2">{{ subject.year_level }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -121,6 +143,8 @@
                                 <th class="px-4 py-2 text-left">Code</th>
                                 <th class="px-4 py-2 text-left">Subject Name</th>
                                 <th class="px-4 py-2 text-left">Units</th>
+                                <th class="px-4 py-2 text-left">Semester</th>
+                                <th class="px-4 py-2 text-left">Year Level</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,6 +153,8 @@
                                 <td class="px-4 py-2">{{ subject.code }}</td>
                                 <td class="px-4 py-2">{{ subject.title }}</td>
                                 <td class="px-4 py-2">{{ subject.units }}</td>
+                                <td class="px-4 py-2">{{ subject.semester }}</td>
+                                <td class="px-4 py-2">{{ subject.year_level }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -146,8 +172,6 @@
                 </div>
             </div>
 
-
-
             <div class="flex flex-col items-end justify-center py-2 text-gray-700">
                 <p>Total Credited Units: <span class="font-bold">{{ totalCreditedUnits }}</span></p>
                 <button
@@ -159,15 +183,15 @@
         </div>
     </div>
 </template>
+
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { uploadTor, fetchAllTors, fetchMyTors } from '@/services/apiService'
+import { uploadTor, fetchAllTors, fetchMyTors, saveAdvising, fetchAllCurriculums } from '@/services/apiService'
 import { useToast } from "vue-toastification"
 import { useAuthStore } from '@/stores/auth'
 
 import OcrLoader from '@/components/OcrLoader.vue'
 import FileUpload from '@/components/FileUpload.vue'
-import TableLoader from '@/components/TableLoader.vue'
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -176,14 +200,26 @@ const torsData = ref([])
 const extractedData = ref({})
 const isProcessing = ref(false)
 
+const curriculums = ref([])
+const showCurriculumDropdown = ref(false)
+const selectedCurriculum = ref(null)
+const curriculumSearch = ref("")
+
 const extractedSubjects = computed(() => extractedData.value?.analysis?.ocr_records || [])
 const totalCreditedUnits = computed(() =>
     extractedSubjects.value
         .filter(s => s.is_credited)
         .reduce((sum, s) => sum + (parseFloat(s.credits) || 0), 0)
 )
-
 const advising = computed(() => extractedData.value?.analysis?.advising || {})
+
+// Computed: Filter curriculums
+const filteredCurriculums = computed(() => {
+    return curriculums.value.filter(c =>
+        c.course?.name?.toLowerCase().includes(curriculumSearch.value.toLowerCase())
+    )
+})
+
 
 // Fetch uploaded TORs
 async function getUploadedTor() {
@@ -200,19 +236,46 @@ async function getUploadedTor() {
     }
 }
 
-onMounted(getUploadedTor)
+// Dropdown controls
+const toggleCurriculumDropdown = () => (showCurriculumDropdown.value = !showCurriculumDropdown.value)
+const selectCurriculum = async (curriculum) => {
+    selectedCurriculum.value = curriculum
+    showCurriculumDropdown.value = false
+}
 
-// 👇 Triggered when file is selected from FileUpload.vue
+
+
+// Fetch curriculums
+async function getcurriculums() {
+    try {
+        const res = await fetchAllCurriculums()
+        curriculums.value = res
+    } catch (error) {
+        toast.error("Failed to fetch curriculums")
+    }
+}
+
+onMounted(() => {
+    getUploadedTor()
+    getcurriculums()
+})
+
+// Handle file upload
 async function handleFileUpload(selectedFile) {
     if (!selectedFile) return toast.warning("No file selected.")
+    if (!selectedCurriculum.value) return toast.warning("Please select a curriculum first.")
+
+    const confirmProceed = window.confirm(
+        `You selected curriculum ID ${selectedCurriculum.value.course.name}. Proceed with this curriculum?`
+    )
+    if (!confirmProceed) return
 
     try {
         isProcessing.value = true
         toast.info("Uploading and analyzing your file...")
 
-        const res = await uploadTor(selectedFile, 1)
+        const res = await uploadTor(selectedFile, selectedCurriculum.value.id)
         toast.success(res.message || "File uploaded successfully!")
-        console.log({ res })
         extractedData.value = res || {}
         getUploadedTor()
     } catch (error) {
@@ -222,10 +285,36 @@ async function handleFileUpload(selectedFile) {
     }
 }
 
+// Submit credited subjects
 async function submitCreditedSubjects() {
-    console.log("Submitting:", extractedSubjects.value)
-    toast.success("Credited subjects submitted.")
+    if (!extractedData.value?.analysis?.id && !extractedData.value?.analysis?.tor_id) {
+        toast.warning("No TOR data found.")
+        return
+    }
+
+    const payload = {
+        tor_id: extractedData.value?.analysis?.id || extractedData.value?.analysis?.tor_id,
+        curriculum_id: selectedCurriculum.value.id,
+        advising: advising.value,
+        ocr_records: extractedSubjects.value.map(s => ({
+            code: s.code,
+            title: s.title,
+            credits: s.credits,
+            grade: s.grade,
+            percent_grade: s.percent_grade,
+            is_credited: s.is_credited || false,
+            credited_id: s.credited_id || null,
+        }))
+    }
+
+    try {
+        toast.info("Saving advising and OCR records...")
+        const res = await saveAdvising(payload)
+        toast.success(res.message || "Advising saved successfully!")
+        await getUploadedTor()
+        extractedData.value = {};
+    } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to save advising.")
+    }
 }
-
-
 </script>

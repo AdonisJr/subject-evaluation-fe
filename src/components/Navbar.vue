@@ -13,7 +13,7 @@
             </div>
         </div>
         <!-- 🔔 Notification icon with badge -->
-        <a href="#" class="uk-icon-link bell-icon">
+        <a href="#" class="uk-icon-link bell-icon" @click="toggleModal()">
             <!--  <img src="/icons/navbar/notification.svg" alt="" /> -->
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="notification-icon">
                 <path
@@ -26,13 +26,34 @@
             <span class="notification-badge" v-if="notificationCount">{{ notificationCount }}</span>
         </a>
     </div>
+    <NotificationList v-if="showModal" @toggleThisModal="toggleModal()" @refresh="getNotifications()" />
 
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { fetchAllNotifications, fetchUnreadNotifications } from '@/services/apiService';
+import { computed, onMounted, ref } from 'vue';
+import NotificationList from './NotificationList.vue';
 
+const notifications = ref([]);
+const notificationCount = computed(() => notifications.value.length);
+const showModal = ref(false);
 
-const notificationCount = ref(3);
+const toggleModal = () => {
+    showModal.value = !showModal.value
+}
+
+const getNotifications = async () => {
+    try {
+        const response = await fetchUnreadNotifications()
+        notifications.value = response
+    } catch (error) {
+        console.error('Error fetching curriculums:', error)
+    }
+}
+
+onMounted(() => {
+    getNotifications();
+})
 
 </script>
