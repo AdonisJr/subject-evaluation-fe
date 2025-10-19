@@ -35,11 +35,6 @@
         <span>⬆️</span> Uploaded TOR
       </RouterLink>
 
-      <RouterLink to="/admin/transcript-extract"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition" active-class="bg-slate-700">
-        <span>📄</span> Transcript Extract
-      </RouterLink>
-
       <RouterLink to="/admin/profile" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
         active-class="bg-slate-700">
         <span>👤</span> Profile

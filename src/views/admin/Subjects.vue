@@ -65,6 +65,7 @@
                 <table class="w-full text-sm text-left text-gray-600 min-h-[400px]">
                     <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
                         <tr>
+                            <th class="px-4 py-3">ID</th>
                             <th class="px-4 py-3">Code</th>
                             <th class="px-4 py-3">Title</th>
                             <th class="px-4 py-3">Units</th>
@@ -77,6 +78,7 @@
                     <tbody>
                         <tr v-for="subject in paginatedSubjects" :key="subject.id"
                             class="border-b border-slate-200 hover:bg-gray-50 transition">
+                            <td class="px-4 py-3">{{ subject.id }}</td>
                             <td class="px-4 py-3">{{ subject.code }}</td>
                             <td class="px-4 py-3">{{ subject.name }}</td>
                             <td class="px-4 py-3">{{ subject.units }}</td>

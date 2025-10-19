@@ -172,6 +172,31 @@ export const deleteTor = async (id) => {
     }
 }
 
+// approveTorawait axios.post('/api/tor/approve', payload)
+export const approveTor = async (payload) => {
+    try {
+        const response = await api.post('/api/tors/approve', payload)
+        console.log('Tor approved:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error approving TOR:', error)
+        throw error
+    }
+}
+
+// approveTorawait axios.post('/api/tor/approve', payload)
+export const computeRemainingYears = async (torId, curriculumId) => {
+    try {
+        const response = await api.get(`/api/tor/approve/compute-remaining/${torId}/${curriculumId}`)
+        console.log('Remaining years:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching remaining years:', error)
+        throw error
+    }
+}
+
+
 
 // advising related
 // 💾 Save advising
@@ -333,6 +358,16 @@ export const fetchCurriculumsByCourse = async (courseId) => {
     }
 }
 
+export const newAdvising = async (curriculum_id) => {
+    try {
+        const response = await api.post(`/api/new-student/advising`, {curriculum_id})
+        console.log(`Store new advising:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error storing advising`, error)
+        throw error
+    }
+}
 
 // src/services/subjectService.js
 /**

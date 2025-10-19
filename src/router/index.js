@@ -34,6 +34,7 @@ const router = createRouter({
       children: [
         { path: 'upload-tor', name: 'StudentUploadTor', component: () => import('@/views/student/StudentUploadTor.vue') },
         { path: 'dashboard', name: 'StudentDashboard', component: () => import('@/views/student/StudentDashboard.vue') },
+        { path: 'advising', name: 'StudentAdvising', component: () => import('@/views/student/StudentAdvising.vue') },
         { path: 'profile', name: 'StudentProfile', component: () => import('@/views/Profile.vue') },
       ]
     },
@@ -44,39 +45,67 @@ const router = createRouter({
 })
 
 
+// router.beforeEach((to, from, next) => {
+//   const toast = useToast();
+//   const user = JSON.parse(localStorage.getItem('user'));
+
+//   // If user is not logged in
+//   if (!user?.id) {
+//     return next(); // let them access public pages (landing, login)
+//   }
+
+//   // User is logged in
+//   const isAdmin = user.role === 'admin';
+//   const isStudent = user.role === 'user';
+
+//   // Check if other_info is missing or empty
+//   const missingInfo = !user.other_info || Object.keys(user.other_info).length === 0;
+
+//   // If profile info is missing, force redirect to profile
+//   if (missingInfo) {
+//     if (isStudent && to.path !== '/student/profile') {
+//       toast.warning('Please complete your profile information.');
+//       return next('/student/profile');
+//     }
+//   }
+
+//   // If user goes to landing page while logged in, redirect to dashboard
+//   if (to.path === '/' || to.path === '/login') {
+//     if (isAdmin) return next('/admin/dashboard');
+//     if (isStudent) return next('/student/dashboard');
+//   }
+
+//   next(); // allow other routes
+// });
+
 router.beforeEach((to, from, next) => {
-  const toast = useToast();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const toast = useToast()
+  const user = JSON.parse(localStorage.getItem('user'))
 
-  // If user is not logged in
-  if (!user?.id) {
-    return next(); // let them access public pages (landing, login)
+  // 🔹 If not logged in, let them pass
+  if (!user?.id) return next()
+
+  const isAdmin = user.role === 'admin'
+  const isStudent = user.role === 'user'
+
+  // 🔹 Require profile completion
+  const missingInfo = !user.other_info || Object.keys(user.other_info).length === 0
+  if (missingInfo && isStudent && to.path !== '/student/profile') {
+    toast.warning('Please complete your profile information.')
+    return next('/student/profile')
   }
 
-  // User is logged in
-  const isAdmin = user.role === 'admin';
-  const isStudent = user.role === 'user';
-
-  // Check if other_info is missing or empty
-  const missingInfo = !user.other_info || Object.keys(user.other_info).length === 0;
-
-  // If profile info is missing, force redirect to profile
-  if (missingInfo) {
-    if (isStudent && to.path !== '/student/profile') {
-      toast.warning('Please complete your profile information.');
-      return next('/student/profile');
-    }
-  }
-
-  // If user goes to landing page while logged in, redirect to dashboard
+  // 🔹 Redirect logged-in users away from landing/login
   if (to.path === '/' || to.path === '/login') {
-    if (isAdmin) return next('/admin/dashboard');
-    if (isStudent) return next('/student/dashboard');
+    if (isAdmin) return next('/admin/dashboard')
+    if (isStudent) return next('/student/dashboard')
   }
 
-  next(); // allow other routes
-});
-
-
+  // 🔹 If student is NEW and tries to access upload-tor → redirect to advising
+  if (to.path === '/student/upload-tor' && user.other_info?.category === 'New') {
+    return next('/student/advising')
+  }
+  next()
+})
 
 export default router
