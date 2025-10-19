@@ -33,59 +33,20 @@
             <FileUpload @file-selected="handleFileUpload" />
         </div>
 
+        <div class="mb-5" v-if="subjects.length != 0">
+            <StudentCurriculumSubjects :subjects="creditedCurriculumSubjects" />
+        </div>
+
+
         <!-- Results / Loader -->
         <div class="bg-white rounded-lg shadow px-6 pb-6">
             <div v-if="isProcessing" class="mt-4">
                 <OcrLoader :show="isProcessing" />
             </div>
 
-            <div class="flex flex-col h-[300px] overflow-y-auto" v-else>
+            <div class="flex flex-col" v-else>
                 <div v-if="extractedSubjects.length">
-                    <table class="min-w-full text-xs text-gray-700 border border-slate-200 rounded-lg overflow-hidden">
-                        <thead class="bg-white sticky top-0">
-                            <tr>
-                                <th class="px-4 py-2 text-left">Code</th>
-                                <th class="px-4 py-2 text-left">Subject Title</th>
-                                <th class="px-4 py-2 text-left">Units</th>
-                                <th class="px-4 py-2 text-left">Grade</th>
-                                <th class="px-4 py-2 text-left">Percent Grade</th>
-                                <th class="px-4 py-2 text-left">Credited</th>
-                                <th class="px-4 py-2 text-left">Credited To</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="subject in extractedSubjects" :key="subject.id"
-                                class="odd:bg-gray-50 even:bg-white hover:bg-blue-50 transition">
-                                <td class="px-4 py-2">{{ subject.code }}</td>
-                                <td class="px-4 py-2">{{ subject.title }}</td>
-                                <td class="px-4 py-2">{{ subject.credits }}</td>
-                                <td class="px-4 py-2">{{ subject.grade }}</td>
-                                <td class="px-4 py-2">{{ subject.percent_grade }}</td>
-                                <td class="px-4 py-2">
-                                    <input type="checkbox" v-model="subject.is_credited" />
-                                </td>
-                                <td class="px-4 py-2">
-                                    <p v-if="!subject.is_credited && !subject.credited_id"></p>
-                                    <select v-model="subject.credited_id" v-else
-                                        class="border border-gray-300 rounded px-2 py-1 text-xs w-full"
-                                        :disabled="!subject.is_credited">
-                                        <option value="" disabled>Select subject</option>
-                                        <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.code }}</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Empty State -->
-                <div v-else class="flex flex-col items-center justify-center h-full text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p class="text-center">No subjects found.</p>
+                    <StudentExtractedSubjects :torGrades="tor_grades" :curriculumSubjects="subjects" />
                 </div>
             </div>
 
@@ -170,10 +131,16 @@
                         <span class="font-semibold text-gray-800">{{ advising.total_units }}</span> units
                     </p>
                 </div>
+
+                <!-- Remaining Progress Section -->
+                <div v-if="remainingProgress">
+                    <RemainingYears :remainingProgress="remainingProgress" />
+                </div>
+
             </div>
 
             <div class="flex flex-col items-end justify-center py-2 text-gray-700">
-                <p>Total Credited Units: <span class="font-bold">{{ totalCreditedUnits }}</span></p>
+                <!-- <p>Total Credited Units: <span class="font-bold">{{ totalCreditedUnits }}</span></p> -->
                 <button
                     class="my-3 p-2 bg-blue-500 hover:bg-blue-600 w-50 cursor-pointer rounded-md duration-200 text-white"
                     @click="submitCreditedSubjects">
@@ -186,12 +153,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { uploadTor, fetchAllTors, fetchMyTors, saveAdvising, fetchAllCurriculums } from '@/services/apiService'
+import { uploadTor, fetchAllTors, fetchMyTors, saveAdvising, fetchAllCurriculums, fetchAllSubjects, fetchSubjectsByCurriculum } from '@/services/apiService'
 import { useToast } from "vue-toastification"
 import { useAuthStore } from '@/stores/auth'
 
 import OcrLoader from '@/components/OcrLoader.vue'
 import FileUpload from '@/components/FileUpload.vue'
+import RemainingYears from '@/components/RemainingYears.vue'
+import StudentCurriculumSubjects from '@/components/StudentCurriculumSubjects.vue'
+import StudentExtractedSubjects from '@/components/StudentExtractedSubjects.vue'
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -199,11 +169,14 @@ const toast = useToast()
 const torsData = ref([])
 const extractedData = ref({})
 const isProcessing = ref(false)
+const isSubjectsLoading = ref(false);
 
 const curriculums = ref([])
 const showCurriculumDropdown = ref(false)
 const selectedCurriculum = ref(null)
 const curriculumSearch = ref("")
+
+const subjects = ref([]);
 
 const extractedSubjects = computed(() => extractedData.value?.analysis?.ocr_records || [])
 const totalCreditedUnits = computed(() =>
@@ -212,13 +185,38 @@ const totalCreditedUnits = computed(() =>
         .reduce((sum, s) => sum + (parseFloat(s.credits) || 0), 0)
 )
 const advising = computed(() => extractedData.value?.analysis?.advising || {})
-
+const tor_grades = computed(() => extractedData.value?.analysis?.ocr_records || [])
 // Computed: Filter curriculums
 const filteredCurriculums = computed(() => {
     return curriculums.value.filter(c =>
         c.course?.name?.toLowerCase().includes(curriculumSearch.value.toLowerCase())
     )
 })
+
+const creditedCurriculumSubjects = computed(() => {
+    // Defensive: ensure curriculum subjects exist
+    if (!subjects.value?.length) return []
+
+    // Detect OCR source (some APIs put ocr_records under `analysis`)
+    const ocrRecords = tor_grades.value || []
+
+    // Map curriculum subjects with credited info
+    return subjects.value.map(sub => {
+        const creditedInfo = ocrRecords.find(
+            rec => rec.is_credited && Number(rec.credited_id) === Number(sub.id)
+        )
+
+        return {
+            ...sub,
+            credited: !!creditedInfo,
+            grade: creditedInfo?.grade ?? null,
+            extracted_code: creditedInfo?.code ?? null,
+            extracted_title: creditedInfo?.title ?? null,
+            extracted_units: creditedInfo?.credits ?? null,
+        }
+    })
+})
+
 
 
 // Fetch uploaded TORs
@@ -240,10 +238,25 @@ async function getUploadedTor() {
 const toggleCurriculumDropdown = () => (showCurriculumDropdown.value = !showCurriculumDropdown.value)
 const selectCurriculum = async (curriculum) => {
     selectedCurriculum.value = curriculum
+    getSubjects(curriculum.id);
     showCurriculumDropdown.value = false
 }
 
-
+// // Merge credited info from torGrades into curriculum subjects
+// const creditedCurriculumSubjects = computed(() => {
+//   return curriculumSubjects.value.map(sub => {
+//     const creditedInfo = torGrades.value.find(
+//       t => t.is_credited && Number(t.credited_id) === Number(sub.id)
+//     )
+//     return {
+//       ...sub,
+//       credited: !!creditedInfo,
+//       grade: creditedInfo?.grade || null,
+//       extracted_code: creditedInfo?.extracted_code || null,
+//       extracted_title: creditedInfo?.title || null,
+//     }
+//   })
+// })
 
 // Fetch curriculums
 async function getcurriculums() {
@@ -254,6 +267,19 @@ async function getcurriculums() {
         toast.error("Failed to fetch curriculums")
     }
 }
+
+const getSubjects = async (curriculum_id) => {
+    isSubjectsLoading.value = true
+    try {
+        const res = await fetchSubjectsByCurriculum(curriculum_id)
+        subjects.value = res;
+    } catch (error) {
+        console.error('Error fetching subjects:', error)
+    } finally {
+        isSubjectsLoading.value = false
+    }
+}
+
 
 onMounted(() => {
     getUploadedTor()
@@ -275,15 +301,43 @@ async function handleFileUpload(selectedFile) {
         toast.info("Uploading and analyzing your file...")
 
         const res = await uploadTor(selectedFile, selectedCurriculum.value.id)
+        // getSubjects(selectedCurriculum.value.id);
         toast.success(res.message || "File uploaded successfully!")
         extractedData.value = res || {}
-        getUploadedTor()
+        getUploadedTor();
     } catch (error) {
         toast.error(error.response?.data?.message || "Upload failed.")
     } finally {
         isProcessing.value = false
     }
 }
+
+// 🧮 Remaining Progress Computation
+const remainingProgress = computed(() => {
+    const progress = extractedData.value?.analysis?.remaining_progress
+    if (!progress) return null
+
+    const total = Number(progress.total_units || 0)
+    const credited = Number(progress.credited_units || 0)
+    const percent = total > 0 ? ((credited / total) * 100).toFixed(1) : 0
+    console.log({
+        percent,
+        total_units: progress.total_units,
+        completed_units: progress.credited_units,
+        remaining_units: progress.remaining_units,
+        remaining_semesters: progress.estimated_semesters_left,
+        remaining_years: progress.estimated_years_left
+    })
+    return {
+        percent,
+        total_units: progress.total_units,
+        completed_units: progress.credited_units,
+        remaining_units: progress.remaining_units,
+        remaining_semesters: progress.estimated_semesters_left,
+        remaining_years: progress.estimated_years_left
+    }
+})
+
 
 // Submit credited subjects
 async function submitCreditedSubjects() {
@@ -312,6 +366,7 @@ async function submitCreditedSubjects() {
         const res = await saveAdvising(payload)
         toast.success(res.message || "Advising saved successfully!")
         await getUploadedTor()
+        await getSubjects(selectedCurriculum.value.id);
         extractedData.value = {};
     } catch (error) {
         toast.error(error.response?.data?.message || "Failed to save advising.")

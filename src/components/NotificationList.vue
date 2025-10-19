@@ -41,8 +41,13 @@ import { ref, onMounted } from 'vue'
 import { fetchAllNotifications, markNotificationAsRead } from '@/services/apiService'
 import TableLoader from './TableLoader.vue'
 import { timeAgo } from '@/utils/formatters'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const emits = defineEmits(['toggleThisModal', 'refresh'])
+
+const router = useRouter()
+const auth = useAuthStore()
 
 const notifications = ref([])
 const isLoading = ref(false)
@@ -61,18 +66,35 @@ const getNotifications = async () => {
 
 const handleNotifClick = async (notif) => {
     try {
-        if (!notif.is_read) {
-            emits('toggleThisModal', notif)
-            await markNotificationAsRead(notif.id)
-            notif.is_read = true // Update UI immediately
+        // Instantly update UI
+        notif.is_read = true
+        emits('toggleThisModal', false)
+
+        // Determine base path
+        const basePath = auth.user.role === 'admin'
+            ? '/admin/uploaded-tor'
+            : '/student/uploaded-tor'
+
+        // Redirect immediately
+        router.push({
+            path: basePath,
+            query: {
+                tor: notif.data.tor_id
+            }
+        })
+
+        // Fire and forget API request
+        if (!notif.read_at) {
+            markNotificationAsRead(notif.id).catch(err =>
+                console.error('Failed to mark notification as read:', err)
+            )
             emits('refresh', notif)
         }
-
-        // Emit event with notification data (for opening modal or navigation)
     } catch (error) {
-        console.error('Error marking notification as read:', error)
+        console.error('Error handling notification click:', error)
     }
 }
+
 
 onMounted(() => {
     getNotifications()

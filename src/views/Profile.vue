@@ -129,6 +129,7 @@
                 <option value="">Select</option>
                 <option>Transferee</option>
                 <option>Shiftee</option>
+                <option>New</option>
               </select>
             </div>
           </div>
