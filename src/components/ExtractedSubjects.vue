@@ -8,12 +8,8 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <!-- Search -->
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search extracted code or title..."
-          class="border rounded-lg text-xs px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        <input v-model="searchQuery" type="text" placeholder="Search extracted code or title..."
+          class="border rounded-lg text-xs px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
         <!-- Filter: Credited -->
         <label class="flex items-center text-xs text-gray-600 space-x-1 cursor-pointer">
@@ -28,33 +24,17 @@
       <table class="min-w-full text-xs text-gray-700 border-collapse">
         <thead class="bg-gray-100 sticky top-0">
           <tr>
-            <th
-              v-for="header in headers"
-              :key="header.key"
-              @click="toggleSort(header.key)"
-              class="px-4 py-2 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider cursor-pointer select-none"
-            >
+            <th v-for="header in headers" :key="header.key" @click="toggleSort(header.key)"
+              class="px-4 py-2 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider cursor-pointer select-none">
               <div class="flex items-center gap-1">
                 {{ header.label }}
                 <span v-if="sortKey === header.key">
-                  <svg
-                    v-if="sortOrder === 'asc'"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 text-blue-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg v-if="sortOrder === 'asc'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-500"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                   </svg>
-                  <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 text-blue-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-500" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </span>
@@ -64,11 +44,8 @@
         </thead>
 
         <tbody>
-          <tr
-            v-for="subject in sortedSubjects"
-            :key="subject.id"
-            class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition"
-          >
+          <tr v-for="subject in sortedSubjects" :key="subject.id"
+            class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition">
             <td class="px-4 py-2 font-medium">{{ subject.extracted_code }}</td>
             <td class="px-4 py-2">{{ subject.title }}</td>
             <td class="px-4 py-2 text-center">{{ subject.credits }}</td>
@@ -77,11 +54,8 @@
               <input type="checkbox" v-model="subject.is_credited" />
             </td>
             <td class="px-4 py-2">
-              <select
-                v-model="subject.credited_id"
-                :disabled="!subject.is_credited"
-                class="border border-gray-300 rounded px-2 py-1 text-xs w-full focus:ring-2 focus:ring-blue-400"
-              >
+              <select v-model="subject.credited_id" :disabled="!subject.is_credited"
+                class="border border-gray-300 rounded px-2 py-1 text-xs w-full focus:ring-2 focus:ring-blue-400">
                 <option value="" disabled>Select subject</option>
                 <option v-for="s in curriculumSubjects" :key="s.id" :value="s.id">
                   {{ s.code }} - {{ s.name }}
@@ -100,7 +74,9 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch, reactive } from 'vue'
+
+const emits = defineEmits(['update:torGrades'])
 
 const props = defineProps({
   torGrades: {
@@ -112,6 +88,27 @@ const props = defineProps({
     default: () => [],
   },
 })
+
+// Local reactive copy (deep clone)
+const localTorGrades = reactive(JSON.parse(JSON.stringify(props.torGrades)))
+
+// Whenever parent prop changes (e.g., refetch), sync the local copy
+watch(
+  () => props.torGrades,
+  (newVal) => {
+    Object.assign(localTorGrades, JSON.parse(JSON.stringify(newVal)))
+  },
+  { deep: true }
+)
+
+// Watch for local changes and emit updates back to parent
+watch(
+  localTorGrades,
+  (newVal) => {
+    emits('update:torGrades', JSON.parse(JSON.stringify(newVal)))
+  },
+  { deep: true }
+)
 
 // Filters
 const searchQuery = ref('')
@@ -141,13 +138,12 @@ function toggleSort(key) {
 
 // Filtered subjects
 const filteredSubjects = computed(() => {
-  return props.torGrades.filter((s) => {
+  return localTorGrades.filter((s) => {
     const matchesSearch =
       s.extracted_code?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       s.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
 
     const matchesCredited = showCreditedOnly.value ? s.is_credited : true
-
     return matchesSearch && matchesCredited
   })
 })

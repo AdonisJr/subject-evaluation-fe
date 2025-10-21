@@ -1,203 +1,83 @@
 <template>
-  <div class="fixed inset-0 bg-black/20 z-50 flex justify-center items-start overflow-auto">
-    <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-3/4 lg:w-5/6 relative p-6">
-      <!-- Close Button -->
-      <button @click="$emit('close')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">
-        &times;
-      </button>
+  <div class="fixed inset-0 bg-black/20 z-50 flex justify-center items-start overflow-hidden">
+    <div class="bg-white flex gap-2 w-screen overflow-hidden">
 
-      <!-- Header -->
-      <h2 class="text-2xl font-semibold text-gray-800 mb-2">TOR Details</h2>
-      <p class="text-gray-600 text-sm mb-6">
-        Student:
-        <span class="font-semibold">{{ tor.user?.first_name }} {{ tor.user?.last_name }}</span><br />
-        Curriculum:
-        <span class="font-semibold">{{ tor.curriculum?.course?.name || 'N/A' }}</span>
-      </p>
+      <div class="bg-white shadow-lg w-11/12 md:w-3/4 lg:w-6/6 relative h-screen overflow-y-auto">
+        <!-- Close Button -->
+        <div class="sticky top-0 z-40 bg-white p-6 shadow-lg"> 
+          <button @click="$emit('close')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">
+            &times;
+          </button>
 
-      <!-- Curriculum Subjects
-      <div class="bg-white rounded-lg shadow px-6 pb-6 mb-6">
-        <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
-          Curriculum Subjects
-        </h3>
-        <div class="h-[200px] overflow-y-auto border rounded">
-          <table class="min-w-full text-xs text-gray-700 border-collapse">
-            <thead class="bg-gray-100 sticky top-0">
-              <tr>
-                <th class="px-4 py-2 text-left">Code</th>
-                <th class="px-4 py-2 text-left">Title</th>
-                <th class="px-4 py-2 text-left">Year</th>
-                <th class="px-4 py-2 text-left">Semester</th>
-                <th class="px-4 py-2 text-left">Units</th>
-                <th class="px-4 py-2 text-left">Credited</th>
-                <th class="px-4 py-2 text-left">Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="subject in creditedCurriculumSubjects"
-                :key="subject.id"
-                class="odd:bg-white even:bg-gray-50 hover:bg-blue-50"
-              >
-                <td class="px-4 py-2">{{ subject.code }}</td>
-                <td class="px-4 py-2">{{ subject.name }}</td>
-                <td class="px-4 py-2">{{ subject.year_level }}</td>
-                <td class="px-4 py-2">{{ subject.semester }}</td>
-                <td class="px-4 py-2">{{ subject.units }}</td>
-                <td class="px-4 py-2">
-                  <span
-                    v-if="subject.credited"
-                    class="text-green-600 font-semibold"
-                  >Yes</span>
-                  <span
-                    v-else
-                    class="text-gray-400"
-                  >No</span>
-                </td>
-                <td class="px-4 py-2">
-                  <span v-if="subject.grade">{{ subject.grade }}</span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
-              </tr>
-              <tr v-if="!curriculumSubjects.length">
-                <td colspan="5" class="px-4 py-2 text-center text-gray-400">
-                  No curriculum subjects found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- Header -->
+          <h2 class="text-2xl font-semibold text-gray-800 mb-2">TOR Details</h2>
+          <p class="text-gray-600 text-sm mb-6">
+            Student:
+            <span class="font-semibold">{{ tor.user?.first_name }} {{ tor.user?.last_name }}</span><br />
+            Category:
+            <span class="font-semibold">{{ tor.user?.other_info?.category }}</span><br />
+            Status:
+            <span class="font-semibold">{{ tor.user?.other_info?.status || 'pending' }}</span><br />
+            Curriculum:
+            <span class="font-semibold">{{ tor.curriculum?.course?.name || 'N/A' }}</span>
+          </p>
         </div>
-      </div> -->
-      <div class="mb-5">
-        <CurriculumSubjects :subjects="creditedCurriculumSubjects" />
-      </div>
 
-      <!-- TOR Grades -->
-      <!-- <div class="bg-white rounded-lg shadow px-6 pb-6 mb-6">
-        <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
-          Extracted Subjects / Grades
-        </h3>
-        <div class="h-[250px] overflow-y-auto border rounded">
-          <table class="min-w-full text-xs text-gray-700 border-collapse">
-            <thead class="bg-gray-100 sticky top-0">
-              <tr>
-                <th class="px-4 py-2 text-left">Code</th>
-                <th class="px-4 py-2 text-left">Title</th>
-                <th class="px-4 py-2 text-left">Units</th>
-                <th class="px-4 py-2 text-left">Grade</th>
-                <th class="px-4 py-2 text-left">Credited</th>
-                <th class="px-4 py-2 text-left">Credited To</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="subject in torGrades" :key="subject.id" class="odd:bg-white even:bg-gray-50 hover:bg-blue-50">
-                <td class="px-4 py-2">{{ subject.extracted_code }}</td>
-                <td class="px-4 py-2">{{ subject.title }}</td>
-                <td class="px-4 py-2">{{ subject.credits }}</td>
-                <td class="px-4 py-2">{{ subject.grade || '—' }}</td>
-                <td class="px-4 py-2">
-                  <input type="checkbox" v-model="subject.is_credited" />
-                </td>
-                <td class="px-4 py-2">
-                  <select v-model="subject.credited_id" :disabled="!subject.is_credited"
-                    class="border border-gray-300 rounded px-2 py-1 text-xs w-full">
-                    <option value="" disabled>Select subject</option>
-                    <option v-for="s in curriculumSubjects" :key="s.id" :value="s.id">
-                      {{ s.code }} - {{ s.name }}
-                    </option>
-                  </select>
-                </td>
-              </tr>
-              <tr v-if="!torGrades.length">
-                <td colspan="6" class="px-4 py-2 text-center text-gray-400">
-                  No extracted subjects found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div class="mb-5 p-3">
+          <CurriculumSubjects :subjects="creditedCurriculumSubjects" />
         </div>
-      </div> -->
-      <div class="mb-5">
-        <ExtractedSubjects :torGrades="tor.tor_grades" :curriculumSubjects="curriculumSubjects" />
-      </div>
 
-      <!-- Advising -->
-      <div class="mb-5">
-        <AdvisingSubjects :advising="advising" v-model:selectedSemester="selectedSemester" />
-      </div>
-
-      <!-- <div class="bg-white rounded-lg shadow px-6 pb-6">
-        <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">
-          Advising Records
-        </h3>
-        <div class="h-[200px] overflow-y-auto border rounded">
-          <table class="min-w-full text-xs text-gray-700 border-collapse">
-            <thead class="bg-gray-100 sticky top-0">
-              <tr>
-                <th class="px-4 py-2 text-left">ID</th>
-                <th class="px-4 py-2 text-left">Subject Code</th>
-                <th class="px-4 py-2 text-left">Title</th>
-                <th class="px-4 py-2 text-left">Units</th>
-                <th class="px-4 py-2 text-left">Semester</th>
-                <th class="px-4 py-2 text-left">Year Level</th>
-                <th class="px-4 py-2 text-left">Advice For</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="adv in advising" :key="adv.id" class="odd:bg-white even:bg-gray-50 hover:bg-blue-50">
-                <td class="px-4 py-2">{{ adv.subject.id }}</td>
-                <td class="px-4 py-2">{{ adv.subject.code }}</td>
-                <td class="px-4 py-2">{{ adv.subject.name }}</td>
-                <td class="px-4 py-2">{{ adv.subject.units }}</td>
-                <td class="px-4 py-2">{{ adv.subject.semester }}</td>
-                <td class="px-4 py-2">{{ adv.subject.year_level }}</td>
-                <td class="px-4 py-2">{{ adv.semester }}</td>
-              </tr>
-              <tr v-if="!advising.length">
-                <td colspan="4" class="px-4 py-2 text-center text-gray-400">
-                  No advising records found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="mb-5 p-3">
+          <ExtractedSubjects :torGrades="tor.tor_grades" v-model:torGrades="torGrades"
+            :curriculumSubjects="curriculumSubjects" />
         </div>
-      </div> -->
 
-      <!-- Footer Buttons -->
-      <div class="flex justify-end gap-3 mt-6">
-        <button @click="$emit('close')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-          Close
-        </button>
+        <!-- Advising -->
+        <div class="mb-5 p-3">
+          <AdvisingSubjects :advising="advising" v-model:selectedSemester="selectedSemester" />
+        </div>
 
-        <button @click="submitApproveTor" :disabled="isActionDisabled" :class="[
-          'px-4 py-2 rounded text-white transition',
-          isActionDisabled
-            ? 'bg-green-400 cursor-not-allowed opacity-70'
-            : 'bg-green-600 hover:bg-green-700'
-        ]">
-          Approve
-        </button>
+        <!-- Footer Buttons -->
+        <div class="flex justify-end gap-3 p-3 pb-10">
+          <button @click="$emit('close')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+            Close
+          </button>
 
-        <button @click="rejectTor" :disabled="isActionDisabled" :class="[
-          'px-4 py-2 rounded text-white transition',
-          isActionDisabled
-            ? 'bg-red-400 cursor-not-allowed opacity-70'
-            : 'bg-red-600 hover:bg-red-700'
-        ]">
-          Reject
-        </button>
-      </div>
-<!-- 
+          <button @click="submitApproveTor" :disabled="isActionDisabled" :class="[
+            'px-4 py-2 rounded text-white transition',
+            isActionDisabled
+              ? 'bg-green-400 cursor-not-allowed opacity-70'
+              : 'bg-green-600 hover:bg-green-700'
+          ]">
+            Approve
+          </button>
+
+          <button @click="submitRejectTor" :disabled="isActionDisabled" :class="[
+            'px-4 py-2 rounded text-white transition',
+            isActionDisabled
+              ? 'bg-red-400 cursor-not-allowed opacity-70'
+              : 'bg-red-600 hover:bg-red-700'
+          ]">
+            Reject
+          </button>
+        </div>
+        <!-- 
       <div>
         <RemainingYears :remainingProgress="remainingProgress" />
       </div> -->
+
+      </div>
+      <div class="h-screen w-5/12 p-5 flex items-center justify-center">
+        <ImageDrag :src="tor.file_path" />
+      </div>
 
     </div>
   </div>
 </template>
 
 <script setup>
-import { fetchAllSubjects, fetchSubjectsByCurriculum, approveTor, computeRemainingYears } from '@/services/apiService'
+import { fetchAllSubjects, fetchSubjectsByCurriculum, approveTor, computeRemainingYears, rejectTor } from '@/services/apiService'
 import { ref, watch, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import RemainingYears from './RemainingYears.vue'
@@ -205,6 +85,7 @@ import RemainingYears from './RemainingYears.vue'
 import CurriculumSubjects from './CurriculumSubjects.vue'
 import ExtractedSubjects from './ExtractedSubjects.vue'
 import AdvisingSubjects from './AdvisingSubjects.vue'
+import ImageDrag from './ImageDrag.vue'
 
 const props = defineProps({
   tor: Object,
@@ -220,7 +101,7 @@ const advising = ref([])
 const subjects = ref([])
 const selectedSemester = ref('')
 const remainingYearsData = ref(null)
-
+console.log('TOR DETAILS PROP:', props.tor)
 const isActionDisabled = computed(() => props.tor?.status !== 'submitted')
 
 const getSubjects = async () => {
@@ -302,9 +183,7 @@ const creditedCurriculumSubjects = computed(() => {
   })
 })
 
-// Emit actions
-const rejectTor = () => emit('reject', props.tor)
-
+// Emit actions props.tor)
 
 const submitApproveTor = async () => {
   if (!selectedSemester.value) {
@@ -330,5 +209,27 @@ const submitApproveTor = async () => {
   }
 
 }
+
+const submitRejectTor = async () => {
+  // 🛑 Ask user for confirmation
+  const confirmReject = window.confirm('Are you sure you want to reject this TOR? This action cannot be undone.')
+  if (!confirmReject) return
+
+  try {
+    // 📨 Send reject request to API
+    const response = await rejectTor(props.tor.id)
+
+    // ✅ Show success alert
+    toast.success('TOR has been rejected successfully.')
+
+    emit('refresh')
+    emit('close')
+  } catch (error) {
+    console.error(error)
+    toast.error('Failed to reject TOR. Please try again.')
+    // toast.error('Failed to reject TOR.')
+  }
+}
+
 
 </script>

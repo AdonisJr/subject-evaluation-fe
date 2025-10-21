@@ -185,6 +185,18 @@ export const approveTor = async (payload) => {
 }
 
 // approveTorawait axios.post('/api/tor/approve', payload)
+export const rejectTor = async (id) => {
+    try {
+        const response = await api.post(`/api/tors/reject/${id}`)
+        console.log('Tor rejected:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error rejecting TOR:', error)
+        throw error
+    }
+}
+
+// approveTorawait axios.post('/api/tor/approve', payload)
 export const computeRemainingYears = async (torId, curriculumId) => {
     try {
         const response = await api.get(`/api/tor/approve/compute-remaining/${torId}/${curriculumId}`)

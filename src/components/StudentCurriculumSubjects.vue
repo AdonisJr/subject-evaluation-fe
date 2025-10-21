@@ -73,8 +73,8 @@
                         <td class="px-4 py-2 text-center">{{ subject.semester }}</td>
                         <td class="px-4 py-2 text-center">{{ subject.units }}</td>
                         <td class="px-4 py-2 text-center">
-                            <span v-if="subject.credited" class="text-green-600 font-semibold">Yes</span>
-                            <span v-else class="text-gray-400">No</span>
+                            <span v-if="subject.credited" class="text-green-600 font-semibold">✅</span>
+                            <span v-else class="text-gray-400">❌</span>
                         </td>
                         <td class="px-4 py-2 text-center">{{ subject.extracted_title || '__' }}</td>
                         <td class="px-4 py-2 text-center">
