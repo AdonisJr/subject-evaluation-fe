@@ -59,6 +59,29 @@ export const fetchMyInfo = async () => {
     }
 };
 
+
+export const fetchUserOtherInfo = async () => {
+    try {
+        const response = await api.get('/api/users/other-info');
+        console.log('Fetched users:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
+
+export const saveUpdateUserOtherInfo = async (user) => {
+    try {
+        const response = await api.post('/api/users/other-info', user);
+        console.log('Fetched users other info:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error saving users other info:', error);
+        throw error;
+    }
+};
+
 // TOR Management APIs
 
 
@@ -90,14 +113,14 @@ export const fetchMyTors = async () => {
 //
 // 📤 Upload a new TOR
 //
-export const uploadTor = async (file) => {
+export const uploadTor = async (file, curriculum_id) => {
 
     try {
         const formData = new FormData()
         formData.append('file', file)
-        const response = await api.post('/api/tor', formData, {
+        const response = await api.post(`/api/tor/upload/${curriculum_id}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
-            timeout: 120000 // ⏳ 120 seconds for OCR requests
+            timeout: 1200000 // ⏳ 120 seconds for OCR requests
         })
 
         console.log('Uploaded TOR:', response.data)
@@ -148,6 +171,76 @@ export const deleteTor = async (id) => {
         throw error
     }
 }
+
+// approveTorawait axios.post('/api/tor/approve', payload)
+export const approveTor = async (payload) => {
+    try {
+        const response = await api.post('/api/tors/approve', payload)
+        console.log('Tor approved:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error approving TOR:', error)
+        throw error
+    }
+}
+
+// approveTorawait axios.post('/api/tor/approve', payload)
+export const rejectTor = async (id) => {
+    try {
+        const response = await api.post(`/api/tors/reject/${id}`)
+        console.log('Tor rejected:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error rejecting TOR:', error)
+        throw error
+    }
+}
+
+// approveTorawait axios.post('/api/tor/approve', payload)
+export const computeRemainingYears = async (torId, curriculumId) => {
+    try {
+        const response = await api.get(`/api/tor/approve/compute-remaining/${torId}/${curriculumId}`)
+        console.log('Remaining years:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching remaining years:', error)
+        throw error
+    }
+}
+
+
+
+// advising related
+// 💾 Save advising
+// 🧾 Advising related
+export const saveAdvising = async (payload) => {
+    try {
+        const response = await api.post('/api/advising', {
+            tor_id: payload.tor_id,
+            advising: payload.advising,
+            ocr_records: payload.ocr_records
+        })
+        console.log('✅ Saved Advising:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('❌ Error saving advising:', error.response?.data || error)
+        throw error
+    }
+}
+
+
+// 📖 Get advising by TOR ID
+export const fetchAdvising = async (torId) => {
+    try {
+        const response = await api.get(`/api/advising/${torId}`)
+        console.log('Fetched Advising:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching advising:', error)
+        throw error
+    }
+}
+
 
 
 /**
@@ -277,6 +370,16 @@ export const fetchCurriculumsByCourse = async (courseId) => {
     }
 }
 
+export const newAdvising = async (curriculum_id) => {
+    try {
+        const response = await api.post(`/api/new-student/advising`, {curriculum_id})
+        console.log(`Store new advising:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error storing advising`, error)
+        throw error
+    }
+}
 
 // src/services/subjectService.js
 /**
@@ -385,7 +488,6 @@ export const saveGrades = async (id, grades, user_id) => {
 }
 
 
-
 /**
  * Fetch prerequisites of a subject (recursive chain)
  */
@@ -401,6 +503,56 @@ export const Tesseract = async (id, curriculum_id) => {
         throw error
     }
 }
+
+
+// 📬 Get all notifications
+export const fetchAllNotifications = async () => {
+    try {
+        const response = await api.get('/api/notifications')
+        console.log('All Notifications:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching all notifications:', error)
+        throw error
+    }
+}
+
+// 🔔 Get only unread notifications
+export const fetchUnreadNotifications = async () => {
+    try {
+        const response = await api.get('/api/notifications/unread')
+        console.log('Unread Notifications:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error fetching unread notifications:', error)
+        throw error
+    }
+}
+
+// ✅ Mark a single notification as read
+export const markNotificationAsRead = async (id) => {
+    try {
+        const response = await api.post(`/api/notifications/${id}/read`)
+        console.log(`Notification ${id} marked as read:`, response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error marking notification ${id} as read:`, error)
+        throw error
+    }
+}
+
+// 🧹 Mark all notifications as read
+export const markAllNotificationsAsRead = async () => {
+    try {
+        const response = await api.post('/api/notifications/read-all')
+        console.log('All notifications marked as read:', response.data)
+        return response.data
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error)
+        throw error
+    }
+}
+
 
 
 export default api

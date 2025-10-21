@@ -7,6 +7,7 @@
 
     <!-- Main content (scrollable only here) -->
     <main class="flex-1 flex flex-col bg-gray-100 overflow-hidden">
+      <Navbar />
       <!-- Content area (scrollable) -->
       <div class="flex-1 overflow-y-auto p-6">
         <router-view />
@@ -21,6 +22,7 @@
 <script setup>
 import AdminSidebar from '@/components/AdminSidebar.vue' // reuse admin sidebar
 import Footer from '@/components/Footer.vue';
+import Navbar from '@/components/Navbar.vue';
 import StudentSidebar from '@/components/StudentSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 

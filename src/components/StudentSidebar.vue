@@ -8,45 +8,34 @@
 
     <!-- Navigation Links -->
     <nav class="flex-1 px-4 py-6 space-y-2">
-      <RouterLink
-        to="/student/dashboard"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
-        active-class="bg-slate-700"
-      >
+      <RouterLink to="/student/dashboard"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition" active-class="bg-slate-700">
         <span>🏠</span> Dashboard
       </RouterLink>
 
-      <RouterLink
-        to="/student/upload-tor"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
-        active-class="bg-slate-700"
-      >
+      <RouterLink to="/student/upload-tor"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition" active-class="bg-slate-700">
         <span>⬆️</span> Upload TOR
       </RouterLink>
 
-      <RouterLink
-        to="/student/profile"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
-        active-class="bg-slate-700"
-      >
+      <RouterLink to="/student/profile"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition" active-class="bg-slate-700">
         <span>👤</span> Profile
       </RouterLink>
 
-      <RouterLink
+      <!-- <RouterLink
         to="/settings"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition"
         active-class="bg-slate-700"
       >
         <span>⚙️</span> Settings
-      </RouterLink>
+      </RouterLink> -->
     </nav>
 
     <!-- Logout -->
     <div class="px-4 py-4 border-t border-slate-700">
-      <button
-        class="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-slate-700 transition cursor-pointer"
-        @click="authStore.logout()"
-      >
+      <button class="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-slate-700 transition cursor-pointer"
+        @click="authStore.logout()">
         <span>↩️</span> Logout
       </button>
     </div>
@@ -61,6 +50,8 @@ import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const route = useRoute();
+
+const notificationCount = ref(3)
 
 
 
