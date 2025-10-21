@@ -24,6 +24,7 @@ const router = createRouter({
         { path: 'students', name: 'students', component: () => import('@/views/admin/Students.vue') },
         { path: 'profile', name: 'AdminProfile', component: () => import('@/views/Profile.vue') },
         { path: 'curriculum', name: 'AdminCurriculum', component: () => import('@/views/admin/Curriculum.vue') },
+        { path: 'view-tor', name: 'AdminViewTor', component: () => import('@/views/ViewTor.vue') },
       ]
     },
 
@@ -36,6 +37,8 @@ const router = createRouter({
         { path: 'dashboard', name: 'StudentDashboard', component: () => import('@/views/student/StudentDashboard.vue') },
         { path: 'advising', name: 'StudentAdvising', component: () => import('@/views/student/StudentAdvising.vue') },
         { path: 'profile', name: 'StudentProfile', component: () => import('@/views/Profile.vue') },
+        { path: 'view-tor', name: 'StudentViewTor', component: () => import('@/views/ViewTor.vue') },
+        
       ]
     },
 

@@ -73,7 +73,7 @@ const handleNotifClick = async (notif) => {
         // Determine base path
         const basePath = auth.user.role === 'admin'
             ? '/admin/uploaded-tor'
-            : '/student/uploaded-tor'
+            : '/student/view-tor'
 
         // Redirect immediately
         router.push({

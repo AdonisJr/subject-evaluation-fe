@@ -144,7 +144,7 @@ const curriculumSearch = ref('')
 const showCurriculumDropdown = ref(false)
 const searchQuery = ref(route.query.tor || '')
 const currentPage = ref(1)
-const perPage = 5
+const perPage = 8
 
 const getCreditedSummary = (grades) => {
     if (!grades || !grades.length) return '0/0 subjects credited'
