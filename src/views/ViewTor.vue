@@ -40,10 +40,10 @@
 
                 <div class="flex justify-end pe-5 pt-5">
                     <button @click="printForCredited" :disabled="torData.status !== 'approved'" class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200
-        cursor-pointer
-        text-white
-        disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-400
-        bg-indigo-600 hover:bg-indigo-700">
+                            cursor-pointer
+                            text-white
+                            disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-400
+                            bg-indigo-600 hover:bg-indigo-700">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -52,7 +52,7 @@
                         <span>
                             {{ torData.status === 'approved'
                                 ? 'Print Credited Subjects'
-                            : 'Awaiting Approval...' }}
+                                : 'Awaiting Approval...' }}
                         </span>
                     </button>
 
@@ -60,8 +60,13 @@
 
 
                 <div v-if="torGrades.length" class="mt-8">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Extracted TOR Grades</h3>
-                    <AdvisingExtractedSubjects :torGrades="torGrades" :curriculumSubjects="subjects" />
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Extracted TOR Grades</h3>
+                        <AdvisingExtractedSubjects :torGrades="torGrades" :curriculumSubjects="subjects" />
+                    </div>
+                    <div>
+                        <AdvisingSubjectsList :advising="advising" />
+                    </div>
                 </div>
 
                 <div v-if="!subjects.length && !torGrades.length && !isLoading" class="text-gray-500 text-center mt-10">
@@ -81,6 +86,7 @@ import { fetchSubjectsByCurriculum, fetchTor } from '@/services/apiService'
 import OcrLoader from '@/components/OcrLoader.vue'
 import StudentCurriculumSubjects from '@/components/StudentCurriculumSubjects.vue'
 import AdvisingExtractedSubjects from '@/components/AdvisingExtractedSubjects.vue'
+import AdvisingSubjectsList from '@/components/AdvisingSubjectsList.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -91,6 +97,11 @@ const subjects = ref([])
 const isLoading = ref(false)
 
 const torGrades = computed(() => torData.value?.tor_grades || [])
+const advising = computed(() => torData.value?.advising || [])
+
+watch(() => advising.value, (newVal) => {
+    console.log('Advising data updated:', newVal)
+})
 
 const creditedCurriculumSubjects = computed(() => {
     if (!subjects.value.length) return []
@@ -113,7 +124,6 @@ const creditedCurriculumSubjects = computed(() => {
 })
 
 const forPrintData = computed(() => {
-    console.log(creditedCurriculumSubjects.value)
     return {
         printTorGrades: creditedCurriculumSubjects.value.filter(grade => grade.credited),
     }
@@ -123,21 +133,123 @@ const printForCredited = () => {
     const printWindow = window.open('', '_blank')
     const { printTorGrades } = forPrintData.value
 
-    if (!printTorGrades.length) {
-        toast.info('No credited subjects available to print.')
+    if (!printTorGrades.length && (!advising?.first_sem?.length && !advising?.second_sem?.length)) {
+        toast.info('No data available to print.')
         return
     }
 
-    // 🖨️ Build HTML table
-    let html = `
+    // 🔹 Helper: Header (used in both pages)
+    const headerHTML = `
+        <div class="header">
+            <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050174/ccis-logo_wuw5em.jpg" alt="CCIS Logo" />
+            <div class="text">
+                <h1>Agusan del Sur State College of Agriculture and Technology</h1>
+                <p>College of Computing and Information Sciences</p>
+            </div>
+            <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050674/asscat-logo_xdzyiy.jpg" alt="ASSCAT Logo" />
+        </div>
+    `
+
+    // 🔹 Page 1: Credited Subjects
+    const creditedPage = `
+        ${headerHTML}
+        <h2>Transcript of Records — Credited Subjects</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Year Level</th>
+                    <th>Semester</th>
+                    <th>Units</th>
+                    <th>Credited</th>
+                    <th>Extracted Code</th>
+                    <th>Credited Title</th>
+                    <th>Extracted Units</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${printTorGrades.map(g => `
+                    <tr>
+                        <td>${g.code || ''}</td>
+                        <td>${g.name || ''}</td>
+                        <td>${g.year_level || '-'}</td>
+                        <td>${g.semester || '-'}</td>
+                        <td>${g.units ?? ''}</td>
+                        <td>${g.is_credited || g.credited ? '✅' : '❌'}</td>
+                        <td>${g.extracted_code || '-'}</td>
+                        <td>${g.extracted_title || '-'}</td>
+                        <td>${g.extracted_units || '-'}</td>
+                        <td>${g.grade ?? ''}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+
+        <div style="margin-top: 30px;">
+            <p><strong>Total Credited Subjects:</strong> ${printTorGrades.length}</p>
+            <p><strong>Total Units:</strong> 
+                ${printTorGrades.map(s => Number(s.units) || 0).reduce((a, b) => a + b, 0)}
+            </p>
+            <p style="margin-top: 50px;">___________________________________</p>
+            <div>Chairperson Signature Over Printed Name</div>
+        </div>
+        <div class="footer">Generated on ${new Date().toLocaleString()}</div>
+    `
+        console.log('Advising for print:', advising)
+    // 🔹 Page 2: Advising
+    const advisingPage = `
+        ${headerHTML}
+        <h2>Advised Subjects for Next Semester</h2>
+
+        ${advising?.value?.length
+            ? `
+                <h3>First Semester</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Units</th>
+                            <th>Year Level</th>
+                            <th>Semester</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${advising.value.map(data => `
+                            <tr>
+                                <td>${data.subject.code}</td>
+                                <td>${data.subject.name}</td>
+                                <td>${data.subject.units}</td>
+                                <td>${data.subject.year_level}</td>
+                                <td>${data.subject.semester}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <p><strong>Total Units:</strong> ${advising.first_sem_total_units}</p>
+            ` : '<p>No advised subjects for First Semester.</p>'
+        }
+
+        <div style="margin-top: 50px;">
+            <p>Prepared by:</p>
+            <p style="margin-top: 40px;">___________________________________</p>
+            <div>Academic Adviser Signature</div>
+        </div>
+        <div class="footer">Generated on ${new Date().toLocaleString()}</div>
+    `
+
+    // 🔹 Combine both pages
+    const html = `
         <html>
         <head>
-            <title>Credited Subjects Report</title>
+            <title>TOR Print Report</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                h2 { text-align: center; margin-bottom: 20px; }
+                h2, h3 { text-align: center; margin-bottom: 10px; }
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
                 th { background: #f3f4f6; }
                 tr:nth-child(even) { background-color: #fafafa; }
                 .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
@@ -146,66 +258,15 @@ const printForCredited = () => {
                 .header .text { text-align: center; }
                 .header h1 { color: #065f46; font-weight: bold; font-size: 16px; margin: 0; }
                 .header p { color: #444; font-size: 13px; margin: 0; }
+                @media print {
+                    .page-break { page-break-before: always; }
+                }
             </style>
         </head>
         <body>
-            <div class="header">
-                <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050174/ccis-logo_wuw5em.jpg" alt="CCIS Logo" />
-                <div class="text">
-                    <h1>Agusan del Sur State College of Agriculture and Technology</h1>
-                    <p>College of Computing and Information Sciences</p>
-                </div>
-                <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050674/asscat-logo_xdzyiy.jpg" alt="ASSCAT Logo" />
-            </div>
-
-            <h2>Transcript of Records — Credited Subjects</h2>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Title</th>
-                        <th>Year Level</th>
-                        <th>Semester</th>
-                        <th>Units</th>
-                        <th>Credited</th>
-                        <th>Extracted Code</th>
-                        <th>Credited Title</th>
-                        <th>Extracted Units</th>
-                        <th>Grade</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${printTorGrades.map(g => `
-                        <tr>
-                            <td>${g.code || ''}</td>
-                            <td>${g.name || ''}</td>
-                            <td>${g.year_level || '-'}</td>
-                            <td>${g.semester || '-'}</td>
-                            <td>${g.units ?? ''}</td>
-                            <td>${g.is_credited || g.credited ? '✅' : '❌'}</td>
-                            <td>${g.extracted_code || '-'}</td>
-                            <td>${g.extracted_title || '-'}</td>
-                            <td>${g.extracted_units || '-'}</td>
-                            <td>${g.grade ?? ''}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div style="margin-top: 30px;">
-                <p><strong>Total Credited Subjects:</strong> ${printTorGrades.length}</p>
-                <p><strong>Total Units:</strong> 
-                    ${printTorGrades.map(s => Number(s.units) || 0).reduce((a, b) => a + b, 0)}
-                </p>
-
-                <p style="margin-top: 50px;">___________________________________</p>
-                <div>Chairperson Signature Over Printed Name</div>
-            </div>
-
-            <div class="footer">
-                Generated on ${new Date().toLocaleString()}
-            </div>
+            ${creditedPage}
+            <div class="page-break"></div>
+            ${advisingPage}
         </body>
         </html>
     `
@@ -216,6 +277,7 @@ const printForCredited = () => {
     printWindow.focus()
     printWindow.print()
 }
+
 
 
 
