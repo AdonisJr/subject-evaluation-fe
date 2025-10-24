@@ -1,9 +1,10 @@
 <template>
     <div>
-
-        <p>Student Dashboard</p>
+        <div>
+            <StudentCards />
+        </div>
         <!-- Table -->
-        <div class="bg-white rounded-lg hover:shadow-md duration-200 p-6">
+        <div class="bg-white rounded-lg hover:shadow-md duration-200 px-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Uploaded TORs</h3>
 
             <table class="min-w-full border border-slate-200 text-xs text-gray-700">
@@ -80,6 +81,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { fetchMyTors } from '@/services/apiService';
 import { useRouter } from 'vue-router';
+import StudentCards from '@/components/StudentCards.vue';
 
 const router = useRouter();
 

@@ -553,6 +553,19 @@ export const markAllNotificationsAsRead = async () => {
     }
 }
 
+// reprots or summary
+//
+export const fetchStudentSummary = async () => {
+    try {
+        const response = await api.get(`/api/student/summary`)
+        console.log('Student Summary:', response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error fetching student summary:`, error)
+        throw error
+    }
+}
+
 
 
 export default api
