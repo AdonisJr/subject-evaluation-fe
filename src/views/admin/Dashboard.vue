@@ -1,10 +1,14 @@
 <template>
-<p>Admin Dashboard</p>
+  <div>
+
+    <AdminDashboardCard />
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { fetchUsers } from '@/services/apiService';
+import AdminDashboardCard from '@/components/AdminDashboardCard.vue';
 
 const users = ref([]);
 

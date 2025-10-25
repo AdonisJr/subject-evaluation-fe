@@ -159,7 +159,7 @@ const loading = ref(true)
 const fetchStats = async () => {
     try {
         if (authStore?.user.other_info?.status === 'enrolled') {
-            const { data } = await fetchStudentSummary()
+            const data  = await fetchStudentSummary()
             stats.value = data || {}
         }
     } catch (error) {
