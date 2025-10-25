@@ -17,7 +17,7 @@
                         <div class="p-1 font-semibold text-center text-white shadow-sm" :class="{
                             'bg-yellow-500': torData.status === 'submitted',
                             'bg-green-600': torData.status === 'approved',
-                            'bg-red-600': torData.status === 'failed',
+                            'bg-red-600': torData.status === 'rejected',
                         }">
                             {{ torData.status.toUpperCase() }}
                         </div>
@@ -66,6 +66,25 @@
                     </div>
                     <div>
                         <AdvisingSubjectsList :advising="advising" />
+                        <div class="flex justify-end pe-5 pt-5">
+                            <button @click="printForAdvising" :disabled="torData.status !== 'approved'" class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200
+                            cursor-pointer
+                            text-white
+                            disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-400
+                            bg-indigo-600 hover:bg-indigo-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 9V2h12v7m-6 4h6m-6 4h6M6 20h12v-6H6v6z" />
+                                </svg>
+                                <span>
+                                    {{ torData.status === 'approved'
+                                        ? 'Print Advised Subjects'
+                                        : 'Awaiting Approval...' }}
+                                </span>
+                            </button>
+
+                        </div>
                     </div>
                 </div>
 
@@ -133,12 +152,11 @@ const printForCredited = () => {
     const printWindow = window.open('', '_blank')
     const { printTorGrades } = forPrintData.value
 
-    if (!printTorGrades.length && (!advising?.first_sem?.length && !advising?.second_sem?.length)) {
-        toast.info('No data available to print.')
+    if (!printTorGrades.length) {
+        toast.info('No credited subjects available to print.')
         return
     }
 
-    // 🔹 Helper: Header (used in both pages)
     const headerHTML = `
         <div class="header">
             <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050174/ccis-logo_wuw5em.jpg" alt="CCIS Logo" />
@@ -150,7 +168,6 @@ const printForCredited = () => {
         </div>
     `
 
-    // 🔹 Page 1: Credited Subjects
     const creditedPage = `
         ${headerHTML}
         <h2>Transcript of Records — Credited Subjects</h2>
@@ -197,57 +214,14 @@ const printForCredited = () => {
         </div>
         <div class="footer">Generated on ${new Date().toLocaleString()}</div>
     `
-        console.log('Advising for print:', advising)
-    // 🔹 Page 2: Advising
-    const advisingPage = `
-        ${headerHTML}
-        <h2>Advised Subjects for Next Semester</h2>
 
-        ${advising?.value?.length
-            ? `
-                <h3>First Semester</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Title</th>
-                            <th>Units</th>
-                            <th>Year Level</th>
-                            <th>Semester</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${advising.value.map(data => `
-                            <tr>
-                                <td>${data.subject.code}</td>
-                                <td>${data.subject.name}</td>
-                                <td>${data.subject.units}</td>
-                                <td>${data.subject.year_level}</td>
-                                <td>${data.subject.semester}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <p><strong>Total Units:</strong> ${advising.first_sem_total_units}</p>
-            ` : '<p>No advised subjects for First Semester.</p>'
-        }
-
-        <div style="margin-top: 50px;">
-            <p>Prepared by:</p>
-            <p style="margin-top: 40px;">___________________________________</p>
-            <div>Academic Adviser Signature</div>
-        </div>
-        <div class="footer">Generated on ${new Date().toLocaleString()}</div>
-    `
-
-    // 🔹 Combine both pages
     const html = `
         <html>
         <head>
-            <title>TOR Print Report</title>
+            <title>Credited Subjects</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                h2, h3 { text-align: center; margin-bottom: 10px; }
+                h2 { text-align: center; margin-bottom: 10px; }
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                 th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
                 th { background: #f3f4f6; }
@@ -258,14 +232,100 @@ const printForCredited = () => {
                 .header .text { text-align: center; }
                 .header h1 { color: #065f46; font-weight: bold; font-size: 16px; margin: 0; }
                 .header p { color: #444; font-size: 13px; margin: 0; }
-                @media print {
-                    .page-break { page-break-before: always; }
-                }
             </style>
         </head>
         <body>
             ${creditedPage}
-            <div class="page-break"></div>
+        </body>
+        </html>
+    `
+
+    printWindow.document.open()
+    printWindow.document.write(html)
+    printWindow.document.close()
+    printWindow.focus()
+    printWindow.print()
+}
+
+const printForAdvising = () => {
+    const printWindow = window.open('', '_blank')
+
+    if (!advising?.value?.length) {
+        toast.info('No advised subjects to print.')
+        return
+    }
+
+    const semester = advising.value.semester || '1st' 
+    const academicYear = advising.value.academic_year || '2025-2026'
+    const advisingTotalunits = advising.value.map(sub => Number(sub.subject.units) || 0).reduce((a, b) => a + b, 0)
+
+    const headerHTML = `
+        <div class="header">
+            <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050174/ccis-logo_wuw5em.jpg" alt="CCIS Logo" />
+            <div class="text">
+                <h1>Agusan del Sur State College of Agriculture and Technology</h1>
+                <p>College of Computing and Information Sciences</p>
+            </div>
+            <img src="https://res.cloudinary.com/dbkupn4he/image/upload/v1761050674/asscat-logo_xdzyiy.jpg" alt="ASSCAT Logo" />
+        </div>
+    `
+
+    const advisingPage = `
+        ${headerHTML}
+        <h2>Certificate of Registration (COR) for ${semester} Semester Academic Year ${academicYear}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Units</th>
+                    <th>Year Level</th>
+                    <th>Semester</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${advising.value.map(data => `
+                    <tr>
+                        <td>${data.subject.code}</td>
+                        <td>${data.subject.name}</td>
+                        <td>${data.subject.units}</td>
+                        <td>${data.subject.year_level}</td>
+                        <td>${data.subject.semester}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+
+        <p><strong>Total Units:</strong> ${advisingTotalunits}</p>
+
+        <div style="margin-top: 50px;">
+            <p>Prepared by:</p>
+            <p style="margin-top: 40px;">___________________________________</p>
+            <div>Academic Adviser Signature</div>
+        </div>
+        <div class="footer">Generated on ${new Date().toLocaleString()}</div>
+    `
+
+    const html = `
+        <html>
+        <head>
+            <title>Advised Subjects</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                h2 { text-align: center; margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
+                th { background: #f3f4f6; }
+                tr:nth-child(even) { background-color: #fafafa; }
+                .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+                .header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+                .header img { height: 60px; width: 60px; object-fit: contain; }
+                .header .text { text-align: center; }
+                .header h1 { color: #065f46; font-weight: bold; font-size: 16px; margin: 0; }
+                .header p { color: #444; font-size: 13px; margin: 0; }
+            </style>
+        </head>
+        <body>
             ${advisingPage}
         </body>
         </html>

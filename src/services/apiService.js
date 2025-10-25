@@ -567,5 +567,16 @@ export const fetchStudentSummary = async () => {
 }
 
 
+export const fetchAdminSummary = async () => {
+    try {
+        const response = await api.get(`/api/admin/summary`)
+        console.log('Admin Summary:', response.data)
+        return response.data
+    } catch (error) {
+        console.error(`Error fetching admin summary:`, error)
+        throw error
+    }
+}
+
 
 export default api
