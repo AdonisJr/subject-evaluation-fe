@@ -38,7 +38,7 @@ const router = createRouter({
         { path: 'advising', name: 'StudentAdvising', component: () => import('@/views/student/StudentAdvising.vue') },
         { path: 'profile', name: 'StudentProfile', component: () => import('@/views/Profile.vue') },
         { path: 'view-tor', name: 'StudentViewTor', component: () => import('@/views/ViewTor.vue') },
-        
+
       ]
     },
 
@@ -85,13 +85,13 @@ router.beforeEach((to, from, next) => {
   const toast = useToast()
   const user = JSON.parse(localStorage.getItem('user'))
 
-  // 🔹 If not logged in, let them pass
+  // 🔹 If not logged in, allow navigation
   if (!user?.id) return next()
 
   const isAdmin = user.role === 'admin'
   const isStudent = user.role === 'user'
 
-  // 🔹 Require profile completion
+  // 🔹 Require profile completion for students
   const missingInfo = !user.other_info || Object.keys(user.other_info).length === 0
   if (missingInfo && isStudent && to.path !== '/student/profile') {
     toast.warning('Please complete your profile information.')
@@ -104,11 +104,19 @@ router.beforeEach((to, from, next) => {
     if (isStudent) return next('/student/dashboard')
   }
 
+  // 🔹 Prevent admin from accessing any /student route
+  if (isAdmin && to.path.startsWith('/student')) {
+    toast.info('Admins cannot access student pages.')
+    return next('/admin/dashboard')
+  }
+
   // 🔹 If student is NEW and tries to access upload-tor → redirect to advising
-  if (to.path === '/student/upload-tor' && user.other_info?.category === 'New') {
+  if (isStudent && to.path === '/student/upload-tor' && user.other_info?.category === 'New') {
     return next('/student/advising')
   }
+
   next()
 })
+
 
 export default router
