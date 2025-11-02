@@ -16,10 +16,11 @@
                     <div class="flex-1">
                         <p :class="[
                             'text-xs leading-tight',
-                            !notif.read_at ? 'text-black font-bold' : 'text-slate-800'
+                            !notif.read_at ? 'text-black font-bold' : 'text-slate-800 font-semibold'
                         ]">
                             {{ notif.data?.message || 'No message available' }}
                         </p>
+                        <p class="text-xs text-slate-500">({{ notif.data.title.toLowerCase() }})</p>
                         <p class="text-xs text-blue-600 mt-1">
                             {{ timeAgo(notif.created_at) }}
                         </p>

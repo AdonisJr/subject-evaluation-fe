@@ -38,7 +38,7 @@
 
                 </div> -->
 
-                <div class="flex justify-end pe-5 pt-5">
+                <div class="flex justify-end pe-5 pt-5" v-if='torData.user?.other_info?.category !== "New"'>
                     <button @click="printForCredited" :disabled="torData.status !== 'approved'" class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200
                             cursor-pointer
                             text-white
@@ -59,8 +59,8 @@
                 </div>
 
 
-                <div v-if="torGrades.length" class="mt-8">
-                    <div>
+                <div class="mt-8">
+                    <div  v-if="torGrades.length">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2">Extracted TOR Grades</h3>
                         <AdvisingExtractedSubjects :torGrades="torGrades" :curriculumSubjects="subjects" />
                     </div>

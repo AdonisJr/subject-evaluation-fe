@@ -15,7 +15,7 @@
 
       <RouterLink to="/student/upload-tor"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-700 transition" active-class="bg-slate-700">
-        <span>⬆️</span> Upload TOR
+        <span>⬆️</span> {{isNewStudent ? 'Request Advising' : 'Upload TOR'}}
       </RouterLink>
 
       <RouterLink to="/student/profile"
@@ -43,13 +43,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const route = useRoute();
+
+const isNewStudent = computed(() => authStore.user.other_info?.category === 'New' || null)
 
 const notificationCount = ref(3)
 

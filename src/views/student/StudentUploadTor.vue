@@ -30,7 +30,8 @@
 
         <!-- File Upload -->
         <div class="bg-white p-6 rounded-lg hover:shadow-md duration-200 mb-6">
-            <FileUpload @file-selected="handleFileUpload" />
+            <FileUpload @file-selected="handleFileUpload" :clearSignal="clearTrigger" :isProcessing="isProcessing"
+                :isSuccess="isSuccess" />
         </div>
 
         <div class="mb-5" v-if="subjects.length != 0">
@@ -170,11 +171,13 @@ const torsData = ref([])
 const extractedData = ref({})
 const isProcessing = ref(false)
 const isSubjectsLoading = ref(false);
+const isSuccess = ref(false);
 
 const curriculums = ref([])
 const showCurriculumDropdown = ref(false)
 const selectedCurriculum = ref(null)
 const curriculumSearch = ref("")
+const clearTrigger = ref(false);
 
 const subjects = ref([]);
 
@@ -305,7 +308,9 @@ async function handleFileUpload(selectedFile) {
         toast.success(res.message || "File uploaded successfully!")
         extractedData.value = res || {}
         getUploadedTor();
+        isSuccess.value = true;
     } catch (error) {
+        isSuccess.value = false;
         toast.error(error.response?.data?.message || "Upload failed.")
     } finally {
         isProcessing.value = false
@@ -368,8 +373,16 @@ async function submitCreditedSubjects() {
         await getUploadedTor()
         await getSubjects(selectedCurriculum.value.id);
         extractedData.value = {};
+        isSuccess.value = false;
     } catch (error) {
         toast.error(error.response?.data?.message || "Failed to save advising.")
+        isSuccess.value = true;
+    } finally {
+        // Reset clear trigger to notify FileUpload to clear
+        clearTrigger.value = !clearTrigger.value;
+        setTimeout(() => {
+            clearTrigger.value = false;
+        }, 100);
     }
 }
 </script>

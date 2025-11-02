@@ -33,6 +33,14 @@ api.interceptors.response.use(
                 window.location.href = "/" // redirect to landing
             }, 2000) // slight delay to show toast
         }
+        if (error.response?.status === 409) {
+            const auth = useAuthStore()
+            toast.error("Your account has been deactivated. Please contact the administrator...")
+            setTimeout(() => {
+                auth.logout()
+                window.location.href = "/" // redirect to landing
+            }, 2000) // slight delay to show toast
+        }
         return Promise.reject(error)
     }
 )
@@ -81,6 +89,30 @@ export const saveUpdateUserOtherInfo = async (user) => {
         throw error;
     }
 };
+
+
+export const saveUpdateUsers = async (user) => {
+    try {
+        const response = await api.post(`/api/users/update/${user.id}`, user);
+        console.log('Fetched users other info:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error saving users other info:', error);
+        throw error;
+    }
+};
+
+export const toggleActiveUser = async (user) => {
+    try {
+        const response = await api.patch(`/api/users/${user}/toggle-active`);
+        console.log('Fetched users toggle active:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error users toggle active:', error);
+        throw error;
+    }
+};
+
 
 // TOR Management APIs
 
@@ -372,7 +404,7 @@ export const fetchCurriculumsByCourse = async (courseId) => {
 
 export const newAdvising = async (curriculum_id) => {
     try {
-        const response = await api.post(`/api/new-student/advising`, {curriculum_id})
+        const response = await api.post(`/api/new-student/advising`, { curriculum_id })
         console.log(`Store new advising:`, response.data)
         return response.data
     } catch (error) {

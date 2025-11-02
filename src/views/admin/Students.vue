@@ -20,26 +20,35 @@
         class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="">All Types</option>
         <option value="New">New</option>
-        <option value="Old">Old</option>
+        <option value="Shiftee">Shiftee</option>
         <option value="Transferee">Transferee</option>
       </select>
       <select v-model="filterYear"
         class="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="">All Years</option>
         <option v-for="year in yearLevels" :key="year" :value="year">
-          {{ year }}
+          {{
+            year === 1
+              ? '1st Year'
+              : year === 2
+                ? '2nd Year'
+                : year === 3
+                  ? '3rd Year'
+                  : year === 4
+                    ? '4th Year'
+                    : year
+          }}
         </option>
+
       </select>
     </div>
 
     <!-- Student Table -->
     <div class="bg-white rounded-2xl shadow-sm p-4 overflow-x-auto">
-      <!-- Loader -->
       <div v-if="isLoadingUsers" class="mt-4">
         <TableLoader :rows="6" />
       </div>
 
-      <!-- Table Content -->
       <div v-else>
         <table class="w-full text-sm text-left text-gray-600 min-h-[400px]">
           <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
@@ -48,8 +57,10 @@
               <th class="px-4 py-3">First Name</th>
               <th class="px-4 py-3">Last Name</th>
               <th class="px-4 py-3">Email</th>
-              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Category</th>
               <th class="px-4 py-3">Year Level</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Is Active</th>
               <th class="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -60,14 +71,29 @@
               <td class="px-4 py-3">{{ student.first_name || '__' }}</td>
               <td class="px-4 py-3">{{ student.last_name || '__' }}</td>
               <td class="px-4 py-3">{{ student.email || '__' }}</td>
-              <td class="px-4 py-3">{{ student.type || '__' }}</td>
-              <td class="px-4 py-3">{{ student.year || '__' }}</td>
+              <td class="px-4 py-3">{{ student.category || '__' }}</td>
+              <td class="px-4 py-3">
+                {{
+                  student.year_level == 1
+                    ? '1st Year'
+                    : student.year_level == 2
+                      ? '2nd Year'
+                      : student.year_level == 3
+                        ? '3rd Year'
+                        : student.year_level == 4
+                          ? '4th Year'
+                          : '__'
+                }}
+              </td>
+              <td class="px-4 py-3">{{ student.status || 'Pending' }}</td>
+              <td class="px-4 py-3">{{ student.is_deleted === 0 ? 'Active' : 'Inactive' }}</td>
               <td class="px-4 py-3 text-right space-x-2">
-                <button @click="openModal(student)" class="text-blue-600 hover:underline">
+                <button @click="openModal(student)" class="text-blue-600 hover:underline cursor-pointer">
                   Edit
                 </button>
-                <button @click="deleteStudent(student.id)" class="text-red-600 hover:underline">
-                  Delete
+                <button @click="toggleActiveStatus(student)"
+                  class="text-red-600 hover:underline cursor-pointer">
+                  {{ student.is_deleted ? 'Activate' : 'Deactivate' }}
                 </button>
               </td>
             </tr>
@@ -110,42 +136,62 @@
       </div>
     </div>
 
-    <!-- ✨ Modal Overlay -->
+    <!-- ✨ Modal -->
     <ModalOverlay v-if="showModal">
       <h2 class="text-lg font-semibold text-gray-800 mb-4">
         {{ editMode ? 'Edit Student' : 'Add Student' }}
       </h2>
 
       <form @submit.prevent="saveStudent" class="space-y-4">
-        <!-- Full Name -->
         <div>
-          <label class="block text-xs text-gray-600 mb-1">Full Name</label>
-          <input v-model="form.name" type="text" class="input" placeholder="Enter full name" required />
+          <label class="block text-xs text-gray-600 mb-1">Student ID</label>
+          <input v-model="form.student_id" type="text" class="input" placeholder="Enter Student ID" required />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">First Name</label>
+          <input v-model="form.first_name" type="text" class="input" placeholder="Enter first name" required />
         </div>
 
-        <!-- Type & Year -->
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Last Name</label>
+          <input v-model="form.last_name" type="text" class="input" placeholder="Enter last name" required />
+        </div>
+
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Email</label>
+          <input v-model="form.email" type="email" class="input" placeholder="Enter email" required />
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-gray-600 mb-1">Type</label>
-            <select v-model="form.type" class="input" required>
+            <label class="block text-xs text-gray-600 mb-1">Category</label>
+            <select v-model="form.category" class="input" required>
               <option value="">Select Type</option>
               <option value="New">New</option>
-              <option value="Old">Old</option>
               <option value="Transferee">Transferee</option>
+              <option value="Shiftee">Shiftee</option>
             </select>
           </div>
+
           <div>
-            <label class="block text-xs text-gray-600 mb-1">Year Level</label>
-            <select v-model="form.year" class="input" required>
-              <option value="">Select Year</option>
-              <option v-for="year in yearLevels" :key="year" :value="year">
-                {{ year }}
-              </option>
+            <label class="block text-xs text-gray-600 mb-1">Status</label>
+            <select v-model="form.status" class="input" required>
+              <option value="Pending">Pending</option>
+              <option value="Enrolled">Enrolled</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
         </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Year Level</label>
+          <select v-model="form.year_level" class="input" required>
+            <option value="1">1st Year </option>
+            <option value="2">2nd Year </option>
+            <option value="3">3rd Year </option>
+            <option value="4">4th Year </option>
+          </select>
+        </div>
 
-        <!-- Buttons -->
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm">
             Cancel
@@ -155,108 +201,54 @@
           </button>
         </div>
       </form>
-
     </ModalOverlay>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { fetchUsers } from "@/services/apiService";
+import { fetchUsers, saveUpdateUsers, toggleActiveUser } from "@/services/apiService";
 import TableLoader from "@/components/TableLoader.vue";
 import ModalOverlay from "@/components/ModalOverlay.vue";
+import { useToast } from "vue-toastification";
 
+const toast = useToast();
 const isLoadingUsers = ref(false);
 const students = ref([]);
 
 const search = ref("");
 const filterType = ref("");
 const filterYear = ref("");
-const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+const yearLevels = [1, 2, 3, 4];
 
 const showModal = ref(false);
 const editMode = ref(false);
-const form = ref({ id: null, name: "", type: "", year: "" });
+const form = ref({
+  id: null,
+  student_id: "",
+  first_name: "",
+  last_name: "",
+  year_level: "1",
+  email: "",
+  category: "",
+  status: "Pending",
+  year: "",
+});
 
 // Pagination
 const currentPage = ref(1);
 const itemsPerPage = ref(8);
 
-// Computed: Filter
-const filteredStudents = computed(() => {
-  return students.value.filter((s) => {
-    const fullName = `${s.first_name ?? ""} ${s.last_name ?? ""}`.toLowerCase();
-    const matchesSearch = fullName.includes(search.value.toLowerCase());
-    const matchesType =
-      !filterType.value || s.type === filterType.value || s.type == null;
-    const matchesYear =
-      !filterYear.value || s.year === filterYear.value || s.year == null;
-    return matchesSearch && matchesType && matchesYear;
-  });
-});
-
-const totalPages = computed(() =>
-  Math.ceil(filteredStudents.value.length / itemsPerPage.value)
-);
-
-const startItem = computed(() =>
-  filteredStudents.value.length
-    ? (currentPage.value - 1) * itemsPerPage.value + 1
-    : 0
-);
-const endItem = computed(() =>
-  Math.min(currentPage.value * itemsPerPage.value, filteredStudents.value.length)
-);
-
-// Paginated students
-const paginatedStudents = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  const end = start + itemsPerPage.value;
-  return filteredStudents.value.slice(start, end);
-});
-
-// Pagination actions
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) currentPage.value = page;
-};
-const prevPage = () => currentPage.value > 1 && currentPage.value--;
-const nextPage = () => currentPage.value < totalPages.value && currentPage.value++;
-
-// CRUD modal actions
-const openModal = (student = null) => {
-  if (student) {
-    editMode.value = true;
-    form.value = { ...student };
-  } else {
-    editMode.value = false;
-    form.value = { id: null, name: "", type: "", year: "" };
-  }
-  showModal.value = true;
-};
-const closeModal = () => (showModal.value = false);
-
-// Save and Delete
-const saveStudent = () => {
-  if (editMode.value) {
-    const index = students.value.findIndex((s) => s.id === form.value.id);
-    students.value[index] = { ...form.value };
-  } else {
-    students.value.push({ ...form.value, id: Date.now() });
-  }
-  closeModal();
-};
-const deleteStudent = (id) => {
-  if (confirm("Are you sure you want to delete this student?")) {
-    students.value = students.value.filter((s) => s.id !== id);
-  }
-};
-
-// Load users
+// ✅ Flatten data when fetching
 const loadUsers = async () => {
   isLoadingUsers.value = true;
   try {
     const response = await fetchUsers();
-    students.value = response;
+    students.value = response.map((s) => ({
+      ...s,
+      category: s.other_info?.category || null,
+      status: s.other_info?.status || "Pending",
+    }));
   } catch (error) {
     console.error("Error fetching users:", error);
   } finally {
@@ -264,9 +256,124 @@ const loadUsers = async () => {
   }
 };
 
-onMounted(() => {
-  loadUsers();
+// Activate / Deactivate student
+const toggleActiveStatus = async (student) => {
+  const action = student.is_deleted === 0 ? "deactivate" : "activate";
+
+  if (!confirm(`Are you sure you want to ${action} this student?`)) return;
+
+  try {
+    // ✅ Call backend endpoint
+    const response = await toggleActiveUser(student.id);
+
+    // ✅ Update local data with new status
+    student.is_deleted = response.user.is_deleted;
+
+    toast.success(
+      `Student successfully ${student.is_deleted === 1 ? "deactivated" : "activated"
+      }!`
+    );
+  } catch (error) {
+    console.error("Error updating student status:", error);
+    toast.error("Failed to update student status.");
+  }
+};
+
+
+
+// Filters
+const filteredStudents = computed(() => {
+  const searchTerm = search.value.trim().toLowerCase();
+  return students.value.filter((s) => {
+    const fullName = `${s.first_name?.toLowerCase() || ""} ${s.last_name?.toLowerCase() || ""}`;
+    const matchesSearch =
+      !searchTerm ||
+      fullName.includes(searchTerm) ||
+      s.email?.toLowerCase().includes(searchTerm) ||
+      s.id?.toString().includes(searchTerm);
+
+    const matchesType = !filterType.value || s.category === filterType.value;
+    const matchesYear = !filterYear.value || s.year_level == filterYear.value;
+
+    return matchesSearch && matchesType && matchesYear;
+  });
 });
+
+// Pagination computed
+const totalPages = computed(() => Math.ceil(filteredStudents.value.length / itemsPerPage.value));
+const startItem = computed(() =>
+  filteredStudents.value.length ? (currentPage.value - 1) * itemsPerPage.value + 1 : 0
+);
+const endItem = computed(() =>
+  Math.min(currentPage.value * itemsPerPage.value, filteredStudents.value.length)
+);
+const paginatedStudents = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredStudents.value.slice(start, start + itemsPerPage.value);
+});
+
+const goToPage = (page) => (currentPage.value = page);
+const prevPage = () => currentPage.value > 1 && currentPage.value--;
+const nextPage = () => currentPage.value < totalPages.value && currentPage.value++;
+
+// Modal actions
+const openModal = (student = null) => {
+  if (student) {
+    editMode.value = true;
+    form.value = { ...student };
+  } else {
+    editMode.value = false;
+    form.value = {
+      id: null,
+      student_id: "",
+      first_name: "",
+      last_name: "",
+      year_level: "",
+      email: "",
+      category: "",
+      status: "Pending",
+    };
+  }
+  showModal.value = true;
+};
+const closeModal = () => (showModal.value = false);
+
+// Save / Update
+const saveStudent = async () => {
+  const missing = [];
+  if (!form.value.first_name.trim()) missing.push("First Name");
+  if (!form.value.last_name.trim()) missing.push("Last Name");
+  if (!form.value.email.trim()) missing.push("Email");
+  if (!form.value.category.trim()) missing.push("Category");
+
+  if (missing.length > 0) {
+    toast.error(`Please fill out: ${missing.join(", ")}`);
+    return;
+  }
+
+  try {
+    await saveUpdateUsers(form.value);
+    await loadUsers();
+    showModal.value = false;
+    toast.success(editMode.value ? "Student updated successfully!" : "Student added successfully!");
+  } catch (error) {
+    console.error(error);
+    if (error.response?.status === 422) {
+      const messages = Object.values(error.response.data.errors).flat().join("\n");
+      toast.error(messages);
+    } else {
+      toast.error(error.response?.data?.message || "Error saving student");
+    }
+  }
+};
+
+const deleteStudent = (id) => {
+  if (confirm("Are you sure you want to delete this student?")) {
+    students.value = students.value.filter((s) => s.id !== id);
+  }
+};
+
+onMounted(loadUsers);
 </script>
 
 <style scoped>
@@ -277,21 +384,5 @@ onMounted(() => {
   border-radius: 0.375rem;
   font-size: 0.875rem;
   color: #374151;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out;
 }
 </style>
