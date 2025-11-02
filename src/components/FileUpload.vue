@@ -2,11 +2,9 @@
   <div class="w-full max-w-4xl mx-auto py-2">
     <label for="file-upload"
       class="block border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-white transition-all duration-200"
-      :class="isDragging ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-green-400'"
-      @drop="onDrop"
-      @dragover="onDragOver"
-      @dragleave="onDragLeave">
-      
+      :class="isDragging ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-green-400'" @drop="onDrop"
+      @dragover="onDragOver" @dragleave="onDragLeave">
+
       <input id="file-upload" type="file" class="hidden" @change="onFileChange" accept=".jpg,.jpeg,.png,.pdf" />
 
       <!-- Content -->
@@ -16,7 +14,8 @@
           <div v-if="isImage" class="w-32 h-32 mb-3 overflow-hidden rounded-md border border-gray-200">
             <img :src="previewUrl" alt="Preview" class="w-full h-full object-cover" />
           </div>
-          <div v-else class="flex items-center justify-center w-32 h-32 mb-3 bg-gray-100 rounded-md border border-gray-200">
+          <div v-else
+            class="flex items-center justify-center w-32 h-32 mb-3 bg-gray-100 rounded-md border border-gray-200">
             <span class="text-gray-500 text-sm">📄 PDF File</span>
           </div>
         </div>
@@ -29,16 +28,13 @@
         <p v-else class="text-gray-400 text-sm">No file chosen</p>
 
         <!-- Action Buttons -->
-        <div v-if="file" class="flex justify-center gap-2 mt-4">
-          <button
-            @click.prevent="emitFile"
+        <div v-if="file && !isSuccess" class="flex justify-center gap-2 mt-4" >
+          <button @click.prevent="emitFile"
             class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
             Continue
           </button>
 
-          <button
-            type="button"
-            @click="cancelUpload"
+          <button type="button" @click="cancelUpload"
             class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
             Cancel
           </button>
@@ -49,8 +45,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, watch } from "vue"
 
+const props = defineProps({
+  clearSignal: { type: Boolean, default: false }, // 🔹 trigger from parent,
+  isProcessing: { type: Boolean, default: false },  // 🔹 disable during processing
+  isSuccess: {type: Boolean, default: false} // 🔹 clear on success
+})
 const emits = defineEmits(["file-selected"])
 const file = ref(null)
 const fileName = ref("")
@@ -95,4 +96,20 @@ function cancelUpload() {
   fileName.value = ""
   previewUrl.value = ""
 }
+
+// ✅ Clear file function
+function clearFile() {
+  file.value = null
+  fileName.value = ""
+  previewUrl.value = ""
+  // emits("clear-file") // notify parent if needed
+}
+
+// ✅ Watch parent signal
+watch(
+  () => props.clearSignal,
+  (newVal) => {
+    if (newVal) clearFile()
+  }
+)
 </script>

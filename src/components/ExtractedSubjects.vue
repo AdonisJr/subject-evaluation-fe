@@ -51,10 +51,14 @@
             <td class="px-4 py-2 text-center">{{ subject.credits }}</td>
             <td class="px-4 py-2 text-center">{{ subject.grade || '—' }}</td>
             <td class="px-4 py-2 text-center">
-              <input type="checkbox" v-model="subject.is_credited" />
+              <input v-if="props.tor.status === 'submitted'" type="checkbox" v-model="subject.is_credited" />
+              <div v-else class="px-4 py-2 text-center">
+                <span v-if="subject.is_credited" class="text-green-600 font-semibold">✅</span>
+                <span v-else class="text-gray-400">❌</span>
+              </div>
             </td>
             <td class="px-4 py-2">
-              <select v-model="subject.credited_id" :disabled="!subject.is_credited"
+              <select v-if="props.tor.status === 'submitted' && subject.is_credited" v-model="subject.credited_id" :disabled="!subject.is_credited"
                 class="border border-gray-300 rounded px-2 py-1 text-xs w-full focus:ring-2 focus:ring-blue-400">
                 <option value="" disabled>Select subject</option>
                 <option v-for="s in curriculumSubjects" :key="s.id" :value="s.id">
@@ -87,6 +91,9 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  tor: {
+    type: Array
+  }
 })
 
 // Local reactive copy (deep clone)

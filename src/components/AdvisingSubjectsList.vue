@@ -37,7 +37,7 @@
             </table>
             <p class="text-sm text-gray-500">Total units (1st sem):
                 <span class="font-semibold text-blue-700">
-                    {{advising.first_sem.reduce((sum, s) => sum + (parseFloat(s.units) || 0), 0)}}
+                    {{advising.first_sem.reduce((sum, s) => sum + (parseFloat(s.subject.units) || 0), 0)}}
                 </span>
             </p>
         </div>
@@ -67,7 +67,7 @@
             </table>
             <p class="text-sm text-gray-500">Total units (2nd sem):
                 <span class="font-semibold text-blue-700">
-                    {{advising.second_sem.reduce((sum, s) => sum + (parseFloat(s.units) || 0), 0)}}
+                    {{advising.second_sem.reduce((sum, s) => sum + (parseFloat(s.subject.units) || 0), 0)}}
                 </span>
             </p>
         </div>
@@ -91,10 +91,16 @@ const props = defineProps({
 })
 
 const advising = computed(() => {
-    const first_sem = props.advising.filter(item => item.semester === 'first_sem')
-    const second_sem = props.advising.filter(item => item.semester === 'second_sem')
-    const total_units = first_sem.reduce((sum, s) => sum + (parseFloat(s.units) || 0), 0) +
-        second_sem.reduce((sum, s) => sum + (parseFloat(s.units) || 0), 0)
+    const data = Array.isArray(props.advising) ? props.advising : []
+
+    const first_sem = data.filter(item => item.semester === 'first_sem')
+    const second_sem = data.filter(item => item.semester === 'second_sem')
+
+    const total_units =
+        first_sem.reduce((sum, s) => sum + (parseFloat(s.subject.units) || 0), 0) +
+        second_sem.reduce((sum, s) => sum + (parseFloat(s.subject.units) || 0), 0)
+
+    console.log(first_sem, second_sem, total_units)
 
     return {
         first_sem,
@@ -102,6 +108,7 @@ const advising = computed(() => {
         total_units,
     }
 })
+
 
 console.log(props.advising)
 
