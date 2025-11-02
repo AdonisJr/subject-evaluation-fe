@@ -29,7 +29,7 @@
                 </select>
 
                 <!-- Credited Only -->
-                <label class="flex items-center text-xs text-gray-600 space-x-1 cursor-pointer">
+                <label class="flex items-center text-xs text-gray-600 space-x-1 cursor-pointer" v-if="!isNewStudent">
                     <input type="checkbox" v-model="showCreditedOnly" class="rounded accent-blue-500" />
                     <span>Show credited only</span>
                 </label>
@@ -85,6 +85,9 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const props = defineProps({
     subjects: {
@@ -98,7 +101,7 @@ const searchQuery = ref('')
 const filterYear = ref('')
 const filterSemester = ref('')
 const showCreditedOnly = ref(false)
-
+const isNewStudent = computed(() => authStore.user.other_info.category === 'New')
 // Sorting
 const sortKey = ref('year_level')
 const sortOrder = ref('asc')
