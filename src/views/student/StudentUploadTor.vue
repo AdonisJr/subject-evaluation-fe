@@ -143,9 +143,9 @@
             <div class="flex flex-col items-end justify-center py-2 text-gray-700">
                 <!-- <p>Total Credited Units: <span class="font-bold">{{ totalCreditedUnits }}</span></p> -->
                 <button
-                    class="my-3 p-2 bg-blue-500 hover:bg-blue-600 w-50 cursor-pointer rounded-md duration-200 text-white"
-                    @click="submitCreditedSubjects">
-                    SUBMIT
+                    :class="['my-3 p-2 bg-blue-500 hover:bg-blue-600 w-50 rounded-md duration-200 text-white', isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']"
+                    @click="submitCreditedSubjects" :disabled="isSubmitting">
+                    {{ isSubmitting ? 'Submitting...' : 'Submit' }}
                 </button>
             </div>
         </div>
@@ -178,6 +178,7 @@ const showCurriculumDropdown = ref(false)
 const selectedCurriculum = ref(null)
 const curriculumSearch = ref("")
 const clearTrigger = ref(false);
+const isSubmitting = ref(false);
 
 const subjects = ref([]);
 
@@ -351,6 +352,8 @@ async function submitCreditedSubjects() {
         return
     }
 
+    isSubmitting.value = true;
+
     const payload = {
         tor_id: extractedData.value?.analysis?.id || extractedData.value?.analysis?.tor_id,
         curriculum_id: selectedCurriculum.value.id,
@@ -377,8 +380,10 @@ async function submitCreditedSubjects() {
     } catch (error) {
         toast.error(error.response?.data?.message || "Failed to save advising.")
         isSuccess.value = true;
+        isSubmitting.value = false;
     } finally {
         // Reset clear trigger to notify FileUpload to clear
+        isSubmitting.value = false;
         clearTrigger.value = !clearTrigger.value;
         setTimeout(() => {
             clearTrigger.value = false;

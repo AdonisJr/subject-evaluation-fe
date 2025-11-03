@@ -4,7 +4,6 @@
       class="block border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-white transition-all duration-200"
       :class="isDragging ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-green-400'" @drop="onDrop"
       @dragover="onDragOver" @dragleave="onDragLeave">
-
       <input id="file-upload" type="file" class="hidden" @change="onFileChange" accept=".jpg,.jpeg,.png,.pdf" />
 
       <!-- Content -->
@@ -28,7 +27,7 @@
         <p v-else class="text-gray-400 text-sm">No file chosen</p>
 
         <!-- Action Buttons -->
-        <div v-if="file && !isSuccess" class="flex justify-center gap-2 mt-4" >
+        <div v-if="file && !isSuccess" class="flex justify-center gap-2 mt-4">
           <button @click.prevent="emitFile"
             class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
             Continue
@@ -46,25 +45,37 @@
 
 <script setup>
 import { ref, computed, watch } from "vue"
+import * as pdfjsLib from "pdfjs-dist"
+
+// ✅ Setup PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString()
 
 const props = defineProps({
-  clearSignal: { type: Boolean, default: false }, // 🔹 trigger from parent,
-  isProcessing: { type: Boolean, default: false },  // 🔹 disable during processing
-  isSuccess: {type: Boolean, default: false} // 🔹 clear on success
+  clearSignal: { type: Boolean, default: false }, // 🔹 trigger from parent
+  isProcessing: { type: Boolean, default: false }, // 🔹 disable during processing
+  isSuccess: { type: Boolean, default: false } // 🔹 clear on success
 })
+
 const emits = defineEmits(["file-selected"])
+
 const file = ref(null)
 const fileName = ref("")
 const previewUrl = ref("")
 const isDragging = ref(false)
+const convertedImageFile = ref(null) // <-- new: store converted image
 
 const isImage = computed(() => /\.(jpg|jpeg|png)$/i.test(fileName.value))
 
+// Handle file input change
 function onFileChange(e) {
   const selectedFile = e.target.files[0]
   handleFile(selectedFile)
 }
 
+// Handle drag-drop
 function onDrop(e) {
   e.preventDefault()
   isDragging.value = false
@@ -72,40 +83,74 @@ function onDrop(e) {
   handleFile(droppedFile)
 }
 
-function handleFile(selectedFile) {
-  if (!selectedFile) return
-  file.value = selectedFile
-  fileName.value = selectedFile.name
-  previewUrl.value = selectedFile.type.startsWith("image/") ? URL.createObjectURL(selectedFile) : ""
-}
-
 function onDragOver(e) {
   e.preventDefault()
   isDragging.value = true
 }
+
 function onDragLeave() {
   isDragging.value = false
 }
 
-function emitFile() {
-  emits("file-selected", file.value)
+// ✅ Main handler (image or PDF)
+async function handleFile(selectedFile) {
+  if (!selectedFile) return
+  file.value = selectedFile
+  fileName.value = selectedFile.name
+
+  if (selectedFile.type === "application/pdf") {
+    // PDF file: convert to image
+    await convertPdfToImage(selectedFile)
+  } else if (selectedFile.type.startsWith("image/")) {
+    // Regular image file
+    previewUrl.value = URL.createObjectURL(selectedFile)
+    convertedImageFile.value = selectedFile
+  } else {
+    previewUrl.value = ""
+    convertedImageFile.value = null
+  }
 }
 
+// ✅ Convert PDF → Image (first page)
+async function convertPdfToImage(pdfFile) {
+  const arrayBuffer = await pdfFile.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+  const page = await pdf.getPage(1)
+  const viewport = page.getViewport({ scale: 2.0 })
+
+  const canvas = document.createElement("canvas")
+  const context = canvas.getContext("2d")
+  canvas.width = viewport.width
+  canvas.height = viewport.height
+
+  await page.render({ canvasContext: context, viewport }).promise
+
+  // Convert to blob
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"))
+  const imageFile = new File([blob], pdfFile.name.replace(".pdf", ".png"), { type: "image/png" })
+  convertedImageFile.value = imageFile
+  previewUrl.value = URL.createObjectURL(blob)
+}
+
+// ✅ Emit converted image (for API)
+function emitFile() {
+  const fileToSend = convertedImageFile.value || file.value
+  emits("file-selected", fileToSend)
+}
+
+// ✅ Cancel / Clear file
 function cancelUpload() {
   file.value = null
   fileName.value = ""
   previewUrl.value = ""
+  convertedImageFile.value = null
 }
 
-// ✅ Clear file function
+// ✅ Watch for clear signal from parent
 function clearFile() {
-  file.value = null
-  fileName.value = ""
-  previewUrl.value = ""
-  // emits("clear-file") // notify parent if needed
+  cancelUpload()
 }
 
-// ✅ Watch parent signal
 watch(
   () => props.clearSignal,
   (newVal) => {
