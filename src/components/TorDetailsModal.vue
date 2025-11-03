@@ -54,7 +54,8 @@
 
         <!-- Advising -->
         <div class="mb-5 p-3">
-          <AdvisingSubjects :advising="advising" v-model:selectedSemester="selectedSemester" v-model:selectedSchoolYear="selectedSchoolYear" />
+          <AdvisingSubjects :advising="advising" v-model:selectedSemester="selectedSemester"
+            v-model:selectedSchoolYear="selectedSchoolYear" />
           <!-- <div class="flex justify-end pe-5 pt-5">
             <button @click="printForAdvising" :disabled="!isActionDisabled" class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200
                             cursor-pointer
@@ -88,7 +89,8 @@
               ? 'bg-green-400 cursor-not-allowed opacity-70'
               : 'bg-green-600 hover:bg-green-700'
           ]">
-            Approve
+            {{ isSubmitting ? 'Approving...' : 'Approve' }}
+
           </button>
 
           <button @click="submitRejectTor" :disabled="isActionDisabled" :class="[
@@ -132,6 +134,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'reject', 'refresh'])
 
+const isSubmitting = ref(false)
 const toast = useToast()
 const isLoading = ref(false)
 const torGrades = ref([])
@@ -234,6 +237,8 @@ const submitApproveTor = async () => {
     return
   }
 
+  isSubmitting.value = true
+
   const payload = {
     tor_id: props.tor.id,
     user_id: props.tor.user_id,
@@ -247,9 +252,12 @@ const submitApproveTor = async () => {
     await approveTor(payload);
     emit('refresh')
     emit('close')
-    alert('TOR approved successfully!')
+    toast.success('TOR approved successfully!')
   } catch (error) {
     console.error('Error approving TOR:', error)
+    isSubmitting.value = false
+  } finally {
+    isSubmitting.value = false
   }
 
 }
