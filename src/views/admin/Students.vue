@@ -176,9 +176,9 @@
           <div>
             <label class="block text-xs text-gray-600 mb-1">Status</label>
             <select v-model="form.status" class="input" required>
-              <option value="Pending">Pending</option>
-              <option value="Enrolled">Enrolled</option>
-              <option value="Rejected">Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="enrolled">Enrolled</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
         </div>
