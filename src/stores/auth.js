@@ -52,6 +52,13 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('user')
       toast.error("Logged out successfully.");
       window.location.href = '/'  // Redirect to landing page after logout
-    }
+    },
+    // ✅ Setter for user.other_info
+    setOtherInfo(newInfo) {
+      if (!this.user) this.user = {}
+      this.user.other_info = newInfo
+
+      // Persist updated user in localStorage
+    },
   }
 })
