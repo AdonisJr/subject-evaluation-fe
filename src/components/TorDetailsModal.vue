@@ -54,7 +54,7 @@
 
         <!-- Advising -->
         <div class="mb-5 p-3">
-          <AdvisingSubjects :advising="advising" v-model:selectedSemester="selectedSemester"
+          <AdvisingSubjects :advising="filteredAdvising" v-model:selectedSemester="selectedSemester"
             v-model:selectedSchoolYear="selectedSchoolYear" />
           <!-- <div class="flex justify-end pe-5 pt-5">
             <button @click="printForAdvising" :disabled="!isActionDisabled" class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200
@@ -225,6 +225,18 @@ const creditedCurriculumSubjects = computed(() => {
   })
 })
 
+// Advising-eligible subjects (connected to curriculum)
+// 🧮 Filter advising subjects — remove those already credited
+const filteredAdvising = computed(() => {
+  if (!advising.value?.length) return []
+
+  const creditedIds = creditedCurriculumSubjects.value
+    .filter(sub => sub.credited)
+    .map(sub => sub.id)
+
+  return advising.value.filter(a => !creditedIds.includes(a.subject_id))
+})
+
 // Emit actions props.tor)
 
 const submitApproveTor = async () => {
@@ -237,16 +249,17 @@ const submitApproveTor = async () => {
     return
   }
 
-  isSubmitting.value = true
 
   const payload = {
     tor_id: props.tor.id,
     user_id: props.tor.user_id,
     course_id: props.tor.curriculum.course_id,
     tor_grades: torGrades.value, // includes is_credited flags
-    advising: advising.value.filter(a => a.semester === selectedSemester.value),
+    advising: filteredAdvising.value.filter(a => a.semester === selectedSemester.value),
     school_year: selectedSchoolYear.value
   }
+  
+  isSubmitting.value = true
 
   try {
     await approveTor(payload);

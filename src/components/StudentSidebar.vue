@@ -43,18 +43,21 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const route = useRoute();
+const user = ref(authStore.user)
 
 const isNewStudent = computed(() => authStore.user.other_info?.category === 'New' || null)
 
 const notificationCount = ref(3)
 
-
+// watch(() => authStore.user?.other_info, () => {
+//   alert(authStore.user?.other_info?.category)
+// })
 
 </script>

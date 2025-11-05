@@ -259,7 +259,9 @@ const saveChanges = async () => {
   try {
     const response = await saveUpdateUserOtherInfo(editForm)
     showModal.value = false
-    await getOtherInfo();
+    const data = await getOtherInfo();
+    console.log({response, data})
+    auth.setOtherInfo(response.other_info);
     toast.success('Profile updated successfully!')
   } catch (error) {
     console.error(error)
