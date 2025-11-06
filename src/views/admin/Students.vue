@@ -239,7 +239,7 @@ const form = ref({
 
 // Pagination
 const currentPage = ref(1);
-const itemsPerPage = ref(8);
+const itemsPerPage = ref(10);
 
 // ✅ Flatten data when fetching
 const loadUsers = async () => {
@@ -292,7 +292,8 @@ const filteredStudents = computed(() => {
       !searchTerm ||
       fullName.includes(searchTerm) ||
       s.email?.toLowerCase().includes(searchTerm) ||
-      s.id?.toString().includes(searchTerm);
+      s.id?.toString().includes(searchTerm) ||
+      s.student_id?.toString().includes(searchTerm);
 
     const matchesType = !filterType.value || s.category === filterType.value;
     const matchesYear = !filterYear.value || s.year_level == filterYear.value;
