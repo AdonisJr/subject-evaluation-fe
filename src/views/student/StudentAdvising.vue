@@ -236,6 +236,7 @@ const handleSubmit = async () => {
         const res = await newAdvising(selectedCurriculum.value.id)
 
         toast.success("Advising request submitted successfully!")
+        advising.value = {};
     } catch (error) {
         toast.error("Something went wrong while submitting.")
     } finally {
