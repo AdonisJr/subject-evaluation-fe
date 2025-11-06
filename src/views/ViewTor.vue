@@ -60,7 +60,7 @@
 
 
                 <div class="mt-8">
-                    <div  v-if="torGrades.length">
+                    <div v-if="torGrades.length">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2">Extracted TOR Grades</h3>
                         <AdvisingExtractedSubjects :torGrades="torGrades" :curriculumSubjects="subjects" />
                     </div>
@@ -100,7 +100,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from 'vue-toastification'
-import { fetchSubjectsByCurriculum, fetchTor } from '@/services/apiService'
+import { fetchSubjectsByCurriculum, fetchTor, fetchMyInfo } from '@/services/apiService'
 
 import OcrLoader from '@/components/OcrLoader.vue'
 import StudentCurriculumSubjects from '@/components/StudentCurriculumSubjects.vue'
@@ -109,6 +109,7 @@ import AdvisingSubjectsList from '@/components/AdvisingSubjectsList.vue'
 
 const route = useRoute()
 const toast = useToast()
+const myInfo = ref({})
 
 const torId = ref(route.query.tor)
 const torData = ref({})
@@ -117,7 +118,7 @@ const isLoading = ref(false)
 
 const torGrades = computed(() => torData.value?.tor_grades || [])
 const advising = computed(() => torData.value?.advising || [])
-
+const schoolYear = computed(() => advising.value[0]?.school_year || '2024-2025')
 watch(() => advising.value, (newVal) => {
     console.log('Advising data updated:', newVal)
 })
@@ -249,13 +250,19 @@ const printForCredited = () => {
 
 const printForAdvising = () => {
     const printWindow = window.open('', '_blank')
+    const yearLevel = myInfo.value?.year_level || '1st'
+    const type = myInfo.value?.type || 'Regular'
+    const name = myInfo.value?.first_name && myInfo.value?.last_name
+        ? `${myInfo.value.first_name} ${myInfo.value.last_name}`
+        : 'Student Name'
+    const course = myInfo.value?.other_info?.course?.name
 
     if (!advising?.value?.length) {
         toast.info('No advised subjects to print.')
         return
     }
 
-    const semester = advising.value.semester || '1st' 
+    const semester = advising.value.semester || '1st'
     const academicYear = advising.value.academic_year || '2025-2026'
     const advisingTotalunits = advising.value.map(sub => Number(sub.subject.units) || 0).reduce((a, b) => a + b, 0)
 
@@ -272,7 +279,27 @@ const printForAdvising = () => {
 
     const advisingPage = `
         ${headerHTML}
-        <h2>Certificate of Registration (COR) for ${semester} Semester Academic Year ${academicYear}</h2>
+        <h2>OFFICE OF THE REGISTRAR
+        
+        <span style="font-size: 1.5rem; font-weight: 600; display: block;">
+        CERTIFICATE OF REGISTRATION
+        </span>
+
+        <span style="font-size: 1.5rem; font-weight: 600; display: block;">
+        ${semester} Semester, Academic Year 
+        </span>
+        <span style="font-size: 1.5rem; font-weight: 600; display: block;">
+        ${schoolYear.value}
+        </span>
+
+        <span style="font-size: 1.25rem; font-weight: 500; display: block; color: #555;">
+        </span>
+         </h2>
+         
+        <span><strong>Student Name:</strong> ${name}</span>
+        <span style="display: block">Course: ${course}</span>
+        <span style="display: block">Student Type: ${type} | Year Level: ${yearLevel}</span>
+
         <table>
             <thead>
                 <tr>
@@ -296,7 +323,7 @@ const printForAdvising = () => {
             </tbody>
         </table>
 
-        <p><strong>Total Units:</strong> ${advisingTotalunits}</p>
+        <span><strong>Total Units:</strong> ${advisingTotalunits}</span>
 
         <div style="margin-top: 50px;">
             <p>Prepared by:</p>
@@ -372,7 +399,17 @@ watch(forPrintData, (newData) => {
     console.log('tor grade', torGrades.value)
 })
 
+const getMyInfo = async () => {
+    try {
+        const res = await fetchMyInfo()
+        myInfo.value = res.user
+    } catch (error) {
+        console.error('Failed to fetch user info:', error)
+    }
+}
+
 onMounted(() => {
     loadTorData()
+    getMyInfo()
 })
 </script>
