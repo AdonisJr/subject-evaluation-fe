@@ -59,6 +59,7 @@
               <th class="px-4 py-3">Email</th>
               <th class="px-4 py-3">Category</th>
               <th class="px-4 py-3">Year Level</th>
+              <th class="px-4 py-3">Type</th>
               <th class="px-4 py-3">Status</th>
               <th class="px-4 py-3">Is Active</th>
               <th class="px-4 py-3 text-right">Actions</th>
@@ -85,6 +86,7 @@
                           : '__'
                 }}
               </td>
+              <td class="px-4 py-3">{{ student.type || __ }}</td>
               <td class="px-4 py-3">{{ student.status || 'Pending' }}</td>
               <td class="px-4 py-3">{{ student.is_deleted === 0 ? 'Active' : 'Inactive' }}</td>
               <td class="px-4 py-3 text-right space-x-2">
