@@ -230,12 +230,38 @@ const creditedCurriculumSubjects = computed(() => {
 const filteredAdvising = computed(() => {
   if (!advising.value?.length) return []
 
-  const creditedIds = creditedCurriculumSubjects.value
-    .filter(sub => sub.credited)
-    .map(sub => sub.id)
+  const creditedMap = Object.fromEntries(
+    creditedCurriculumSubjects.value.map(c => [
+      c.id,
+      {
+        code: c.code,
+        name: c.name,
+        grade: c.grade ?? null,
+        prerequisites: c.prerequisites || []
+      }
+    ])
+  )
 
-  return advising.value.filter(a => !creditedIds.includes(a.subject_id))
+  return advising.value.map(a => {
+    const curriculumSub = creditedMap[a.subject_id]
+
+    // get prerequisite details
+    const prereqList = (curriculumSub?.prerequisites || []).map(p => {
+      const prereq = creditedMap[p.prerequisite_id]  // find actual subject
+      return {
+        code: prereq?.code || "",
+        name: prereq?.name || "",
+        grade: prereq?.grade || null
+      }
+    })
+
+    return {
+      ...a,
+      prerequisites: prereqList
+    }
+  })
 })
+
 
 // Emit actions props.tor)
 
@@ -258,7 +284,7 @@ const submitApproveTor = async () => {
     advising: filteredAdvising.value.filter(a => a.semester === selectedSemester.value),
     school_year: selectedSchoolYear.value
   }
-  
+
   isSubmitting.value = true
 
   try {
