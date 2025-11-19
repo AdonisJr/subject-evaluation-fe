@@ -82,6 +82,18 @@
                             <span v-if="subject.grade">{{ subject.grade }}</span>
                             <span v-else class="text-gray-400">—</span>
                         </td>
+                        <td class="px-4 py-2">
+                            <div v-if="subject.prerequisites?.length">
+                                <div v-for="p in subject.prerequisites" :key="p.subject.code" class="flex items-center gap-1">
+                                    <span class="font-semibold text-gray-700">
+                                        {{ p.subject.code }}
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <span v-else class="text-gray-400">—</span>
+                        </td>
                     </tr>
 
                     <tr v-if="!sortedSubjects.length">
@@ -119,6 +131,9 @@ const props = defineProps({
     },
 })
 
+console.log(props.subjects);
+
+
 // Filters
 const searchQuery = ref('')
 const filterYear = ref('')
@@ -140,6 +155,7 @@ const headers = [
     { key: 'extracted_code', label: 'Extracted Code' },
     { key: 'extracted_title', label: 'Extracted Title' },
     { key: 'grade', label: 'Grade' },
+    { key: 'prerequisites', label: 'Prerequisites' },
 ]
 
 function toggleSort(key) {
@@ -158,8 +174,8 @@ const uniqueYears = computed(() => {
 
 // Helper: Convert number to year label
 const yearLabel = (year) => {
-  const suffixes = { 1: '1st', 2: '2nd', 3: '3rd' }
-  return `${suffixes[year] || year + 'th'} Year`
+    const suffixes = { 1: '1st', 2: '2nd', 3: '3rd' }
+    return `${suffixes[year] || year + 'th'} Year`
 }
 
 // Filter subjects

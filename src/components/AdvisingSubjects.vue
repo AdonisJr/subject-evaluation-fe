@@ -38,7 +38,8 @@
             <th class="px-4 py-2 text-left">Semester</th>
             <th class="px-4 py-2 text-left">Year Level</th>
             <th class="px-4 py-2 text-left">Advice For</th>
-            <th class="px-4 py-2 text-left">School Year</th>
+            <!-- <th class="px-4 py-2 text-left">School Year</th> -->
+            <th class="px-4 py-2 text-left">Prerequisite</th>
           </tr>
         </thead>
 
@@ -59,7 +60,26 @@
               }}
             </td>
             <td class="px-4 py-2 capitalize">{{ adv.semester?.replace('_', ' ') }}</td>
-            <td class="px-4 py-2">{{ adv.school_year || '—' }}</td>
+            <!-- <td class="px-4 py-2">{{ adv.school_year || '—' }}</td> -->
+            <td class="px-4 py-2">
+              <div v-if="adv.prerequisites?.length">
+                <div v-for="p in adv.prerequisites" :key="p.code" class="flex items-center gap-1">
+                  <span class="font-semibold text-gray-700">
+                    {{ p.code }}
+                  </span>
+
+                  <span v-if="p.grade !== null" class="text-green-700 font-semibold">
+                    ({{ p.grade }})
+                  </span>
+
+                  <span v-else class="text-gray-400 text-xs">
+                    no grade
+                  </span>
+                </div>
+              </div>
+
+              <span v-else class="text-gray-400">—</span>
+            </td>
           </tr>
 
           <tr v-if="!filteredAdvising.length">
@@ -87,6 +107,8 @@ const props = defineProps({
     default: () => [],
   },
 })
+
+console.log(props.advising)
 
 const emit = defineEmits(['update:selectedSemester', 'update:selectedSchoolYear'])
 
